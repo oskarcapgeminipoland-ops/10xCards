@@ -1,3 +1,52 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+10xCards — an AI-assisted spaced-repetition flashcard app (paste text → LLM-generated flashcard proposals → accept/edit/reject → spaced-repetition review). Currently at the bootstrapped-starter stage: only auth (email/password via Supabase) is implemented; flashcard generation and review are not yet built. Full scope: `context/foundation/prd.md`.
+
+## Commands
+
+- `npm run dev` — start dev server (Cloudflare workerd runtime)
+- `npm run build` — production build (SSR via `@astrojs/cloudflare`)
+- `npm run preview` — preview production build
+- `npm run lint` / `npm run lint:fix` — ESLint with type-checked rules
+- `npm run format` — Prettier (prettier-plugin-astro + prettier-plugin-tailwindcss)
+
+No test runner is configured yet. Pre-commit hooks (husky + lint-staged) run `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
+
+## Architecture
+
+Astro 6 SSR app (`output: "server"` in `astro.config.mjs`) with React 19 islands, Tailwind 4, Supabase auth, and shadcn/ui, deployed to Cloudflare Workers via `@astrojs/cloudflare`. All pages render server-side by default; API routes must export `const prerender = false`.
+
+### Auth flow
+
+- `src/lib/supabase.ts` — creates a Supabase SSR client (`@supabase/ssr`, cookie-based sessions) from `astro:env/server` vars `SUPABASE_URL`/`SUPABASE_KEY`; returns `null` if either is unset, so callers must handle a missing client.
+- `src/middleware.ts` — runs on every request, resolves the user into `context.locals.user`, and redirects unauthenticated requests away from routes listed in `PROTECTED_ROUTES`.
+- API endpoints: `src/pages/api/auth/{signin,signup,signout}.ts`. Auth pages: `src/pages/auth/{signin,signup,confirm-email}.astro`. Protected-page example: `src/pages/dashboard.astro`.
+
+### Conventions
+
+- Path alias `@/*` → `./src/*`.
+- Astro components for static content/layout; React only where interactivity is needed (no Next.js directives like `"use client"`); extract hooks to `src/components/hooks/`.
+- Merge Tailwind classes with `cn()` from `@/lib/utils` (clsx + tailwind-merge) — don't concatenate class strings manually.
+- shadcn/ui components live in `src/components/ui/` ("new-york" style); add new ones with `npx shadcn@latest add [name]`.
+- API routes use uppercase `GET`/`POST` exports; validate input with zod.
+- Supabase migrations go in `supabase/migrations/`, named `YYYYMMDDHHmmss_short_description.sql`; enable RLS with granular per-operation, per-role policies on every new table.
+- Services/business logic go in `src/lib/` (or `src/lib/services/`); shared types (entities, DTOs) go in `src/types.ts`.
+
+### Environment
+
+- Node v22.14.0 (`.nvmrc`).
+- `SUPABASE_URL`/`SUPABASE_KEY`: copy `.env.example` to `.env` (Node) or `.dev.vars` (Cloudflare local dev, gitignored).
+- Local Supabase: `npx supabase start` (requires Docker). No migrations exist yet — only Supabase Auth's built-in `auth.users` table is used.
+- Deploy: `npx wrangler deploy`.
+
+## CI
+
+`.github/workflows/ci.yml` runs lint + build on push/PR — but its branch triggers are still `master` while the repo's default branch is `main`, so CI currently won't fire on pushes to `main`. Requires `SUPABASE_URL`/`SUPABASE_KEY` repo secrets for the build step.
+
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
 ## 10xDevs AI Toolkit — Module 1, Lesson 4
