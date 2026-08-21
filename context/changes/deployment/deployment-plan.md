@@ -118,7 +118,7 @@ Two distinct Supabase contexts matter here and are easy to conflate: the **local
           command: deploy
   ```
   (`account_id` isn't passed as an action input since it's committed in `wrangler.jsonc` per Phase 4.)
-- [ ] Verify: push a trivial commit to `main`, confirm the Action runs, deploys, and `npx wrangler deployments list` reflects the new deploy — **pending this session's final commit+push**; see audit trail below for the outcome once confirmed
+- [x] Verify: push a trivial commit to `main`, confirm the Action runs, deploys, and `npx wrangler deployments list` reflects the new deploy — **done**. Pushed this session's 4 commits (`1fcd366`..`aa32212`) to `main`; both `ci` and `deploy` jobs completed green (`gh run watch`), `wrangler deployments list` shows the new CI-driven deployment (created `2026-08-21T17:45:12Z`), and `curl` against the live URL returned `HTTP 200` immediately after.
 
 ## Phase 8 — Rollback Drill (do this once, before it's ever needed for real)
 
@@ -174,4 +174,4 @@ Executed 2026-08-21, in one continuous session, by Oskar with Claude Code drivin
 
 End-to-end proof this worked: a fresh commit to `main` triggers CI → build → `wrangler deploy` unattended, the deployed `*.workers.dev` URL serves the full sign-up/sign-in/dashboard flow (including a real confirmation-email round trip) without the three watched-for error signatures, `wrangler tail` shows clean request logs, and a `wrangler rollback` dry run has been exercised at least once so it's not being learned for the first time during a real incident.
 
-**Status against this bar:** the manual half is fully proven — Phase 6's smoke test hit every one of sign-up → confirm-email → sign-in → `/dashboard` cleanly, with zero error signatures in `wrangler tail` across the whole session. The automated half (a `main` push triggering CI → build → unattended `wrangler deploy`) is configured but not yet exercised live — this session's changes were deliberately held uncommitted until the user gives the go-ahead; the first real push to `main` after that commit **is** the live test of this bar, no separate trivial commit needed. The `wrangler rollback` rehearsal is the one part of this bar knowingly not met yet — see Phase 8.
+**Status against this bar:** fully proven, with one knowing exception. Phase 6's smoke test hit every one of sign-up → confirm-email → sign-in → `/dashboard` cleanly, zero error signatures in `wrangler tail`. The automated half — a `main` push triggering CI → build → unattended `wrangler deploy` — was exercised live: this session's 4 commits pushed to `main`, both `ci` and `deploy` jobs went green end-to-end, `wrangler deployments list` shows the resulting deployment, and the live URL answered `HTTP 200` right after. The one part of this bar knowingly not met is the `wrangler rollback` rehearsal — explicitly deferred by user decision, see Phase 8.
