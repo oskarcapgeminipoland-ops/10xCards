@@ -18,7 +18,7 @@ No test runner is configured yet. Pre-commit hooks (husky + lint-staged) run `es
 
 ## Architecture
 
-Astro 6 SSR app (`output: "server"` in `astro.config.mjs`) with React 19 islands, Tailwind 4, Supabase auth, and shadcn/ui, deployed to Cloudflare Workers via `@astrojs/cloudflare`. All pages render server-side by default; API routes must export `const prerender = false`.
+Astro 6 SSR app (`output: "server"` in `astro.config.mjs`) with React 19 islands, Tailwind 4, Supabase auth, and shadcn/ui, deployed to Cloudflare Workers via `@astrojs/cloudflare`. All pages and API routes render server-side by default; opt a specific page into static prerendering with `export const prerender = true` if ever needed.
 
 ### Auth flow
 
@@ -29,11 +29,11 @@ Astro 6 SSR app (`output: "server"` in `astro.config.mjs`) with React 19 islands
 ### Conventions
 
 - Path alias `@/*` → `./src/*`.
-- Astro components for static content/layout; React only where interactivity is needed (no Next.js directives like `"use client"`); extract hooks to `src/components/hooks/`.
+- Astro components for static content/layout; React only where interactivity is needed. Extract hooks to `src/components/hooks/`.
 - Merge Tailwind classes with `cn()` from `@/lib/utils` (clsx + tailwind-merge) — don't concatenate class strings manually.
 - shadcn/ui components live in `src/components/ui/` ("new-york" style); add new ones with `npx shadcn@latest add [name]`.
-- API routes use uppercase `GET`/`POST` exports; validate input with zod.
-- Supabase migrations go in `supabase/migrations/`, named `YYYYMMDDHHmmss_short_description.sql`; enable RLS with granular per-operation, per-role policies on every new table.
+- Validate API route input with zod (not yet a dependency — add it when the first route needs body validation).
+- Supabase migrations go in `supabase/migrations/` (create via `npx supabase migration new <name>`); enable RLS with granular per-operation, per-role policies on every new table.
 - Services/business logic go in `src/lib/` (or `src/lib/services/`); shared types (entities, DTOs) go in `src/types.ts`.
 
 ### Environment
@@ -102,34 +102,7 @@ Does NOT belong:
 
 ### U-shaped attention and granular rules
 
-LLMs attend most strongly to the start and end of context (Lost-in-the-Middle / U-shaped attention). A long monolithic `CLAUDE.md` puts its middle rules in the weakest attention zone. Two practical consequences:
-
-1. **Most important rules go to the top** of any rule file.
-2. **Per-area rules belong next to their code** — nested `AGENTS.md` / `CLAUDE.md` inside `src/api/`, `.cursor/rules/*.mdc` with file globs, etc. Granular files are loaded selectively and arrive whole near the start of their own section, instead of being buried at line 400 of one big file.
-
-`/10x-rule-review` Check 5 (reorder) operationalizes consequence (1); the inclusion test plus directory-level `/10x-agents-md` operationalizes consequence (2).
-
-### The five-pattern calibration drill
-
-Before writing a rule, validate that the agent actually breaks the convention without it. Pick one pattern from your project (error-response shape, file naming, import style, module structure, date handling). Then:
-
-1. Ask the agent to implement against the pattern 3–5 times from a clean state, no rule.
-2. Note where it broke the convention; capture run time, files explored, and visible cost/tokens if the host surfaces them.
-3. Add a 1–3-sentence rule to the appropriate scope (root or area-level).
-4. Re-run the same task in a fresh session and compare convention adherence, time, files, and iterations.
-
-If the agent already trends toward the convention without the rule, you don't need the rule. If it systematically picks the wrong pattern, you've found a high-leverage rule to add. This drill is what "earning a rule from a recurring failure" actually looks like.
-
-### Hierarchy and tool interop
-
-- **Claude Code** loads `CLAUDE.md` from the user dir (`~/.claude/CLAUDE.md`), the repo root, and any subdirectory the agent works under. Deeper files override or supplement higher ones.
-- **Codex** and **GitHub Copilot** load `AGENTS.md` from the current directory upward — closest file wins.
-- One canonical file is preferable to three duplicates. A common pattern: `AGENTS.md` as source of truth, `CLAUDE.md` as a thin Claude-Code shim with `@AGENTS.md` import, `.github/copilot-instructions.md` only if Copilot needs its own additions. Symlink (`ln -s AGENTS.md CLAUDE.md`) is the simplest deduplication when tools require both names.
-- Auto-memory (e.g. Claude Code's `~/.claude/projects/<dir-with-slashes-as-dashes>/memory/MEMORY.md`) is local to the machine and not a substitute for `AGENTS.md`. Team-binding rules live in the repo; auto-memory is a personal cache, periodically reviewable.
-
-### Inner-loop hooks (deterministic feedback without prompting)
-
-Mechanical, non-pickable checks belong in hooks (e.g. Claude Code's `PostToolUse`), not in the rule file. The agent finishes an edit; a formatter or fast lint runs; the result feeds back without you reminding it. Settings template (`settings.json.template`) ships in the lesson pack as the wiring entry point. Keep procedural workflows (deeper review, release checklist, deploy on sandbox) in skills, and reserve hooks for deterministic tool signals.
+Put critical rules at the top of any rule file, and place per-area rules next to their code (nested `AGENTS.md`/`CLAUDE.md`, `.cursor/rules/*.mdc` with globs) rather than deep in one monolith — `/10x-rule-review` Check 5 and directory-level `/10x-agents-md` operationalize this.
 
 ### Foundation paths used by this lesson
 
