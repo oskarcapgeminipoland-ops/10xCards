@@ -5,7 +5,7 @@ project_name: 10xcards
 hints:
   language_family: js
   team_size: solo
-  deployment_target: cloudflare-pages
+  deployment_target: cloudflare-workers
   ci_provider: github-actions
   ci_default_flow: auto-deploy-on-merge
   bootstrapper_confidence: first-class
@@ -31,5 +31,5 @@ for (web-app, js), clears all four agent-friendly gates, and its bootstrapper
 confidence is first-class — mostly-smooth scaffolding with occasional manual
 steps. Auth and AI feature flags are set; payments, realtime, and background
 jobs are out of scope per the PRD. CI runs on GitHub Actions with
-auto-deploy-on-merge, and deployment targets Cloudflare Pages — what the
-starter ships with by default.
+auto-deploy-on-merge, and deployment targets Cloudflare Workers — the Astro
+adapter no longer supports Pages.
