@@ -212,25 +212,25 @@ This is a net-new table with no existing data to migrate. No backfill or rollbac
 
 #### Automated
 
-- [x] 1.1 Migration file exists under `supabase/migrations/` with a valid timestamp prefix and the name `create_flashcards_table`
-- [x] 1.2 The migration file contains `enable row level security` and exactly 4 `create policy` statements referencing `flashcards`
-- [x] 1.3 The migration file contains CHECK constraints for `question`, `answer`, `source`, and `status`, and the `on delete cascade` clause on `user_id`
-- [x] 1.4 `npm run lint` passes
+- [x] 1.1 Migration file exists under `supabase/migrations/` with a valid timestamp prefix and the name `create_flashcards_table` — 8d1fe6b
+- [x] 1.2 The migration file contains `enable row level security` and exactly 4 `create policy` statements referencing `flashcards` — 8d1fe6b
+- [x] 1.3 The migration file contains CHECK constraints for `question`, `answer`, `source`, and `status`, and the `on delete cascade` clause on `user_id` — 8d1fe6b
+- [x] 1.4 `npm run lint` passes — 8d1fe6b
 
 #### Manual
 
-- [x] 1.5 Migration applies cleanly locally via `npx supabase start` + `npx supabase migration up`
-- [x] 1.6 Two-test-user RLS isolation confirmed in both directions (select/update/delete)
-- [x] 1.7 CHECK constraints reject empty/over-length/invalid-source rows
-- [x] 1.8 `updated_at` trigger fires on UPDATE; `created_at` does not change
+- [x] 1.5 Migration applies cleanly locally via `npx supabase start` + `npx supabase migration up` — 8d1fe6b
+- [x] 1.6 Two-test-user RLS isolation confirmed in both directions (select/update/delete) — 8d1fe6b
+- [x] 1.7 CHECK constraints reject empty/over-length/invalid-source rows — 8d1fe6b
+- [x] 1.8 `updated_at` trigger fires on UPDATE; `created_at` does not change — 8d1fe6b
 
 ### Phase 2: Shared TypeScript entity type
 
 #### Automated
 
-- [ ] 2.1 `npx astro check` (or `npm run build`) passes
-- [ ] 2.2 `npm run lint` passes
+- [x] 2.1 `npx astro check` (or `npm run build`) passes
+- [x] 2.2 `npm run lint` passes
 
 #### Manual
 
-- [ ] 2.3 `Flashcard` type fields cross-checked against migration column list
+- [x] 2.3 `Flashcard` type fields cross-checked against migration column list
