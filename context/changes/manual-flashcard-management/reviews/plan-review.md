@@ -42,7 +42,7 @@ Progress↔Phase mechanical contract: verified consistent — one `## Progress` 
 - **Location**: Phase 1 §4 vs. Phase 2 §1
 - **Detail**: Phase 1 §4's bulleted contract states `createFlashcard(supabase, input: FlashcardInput) => Promise<Flashcard>` (2 args). The note directly beneath it says the function "takes the authenticated user.id as a parameter alongside input." Phase 2 §1 then calls it as `createFlashcard(supabase, user.id, input)` (3 args, userId in the middle). An implementer following the bulleted signature literally would produce a function Phase 2 can't call as written.
 - **Fix**: Standardize on `createFlashcard(supabase, userId: string, input: FlashcardInput) => Promise<Flashcard>` and correct the Phase 1 §4 bullet to match (the note and Phase 2 call site are already consistent with each other).
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F2 — No defined behavior for malformed input / unexpected errors
 
@@ -61,7 +61,7 @@ Progress↔Phase mechanical contract: verified consistent — one `## Progress` 
   - Tradeoff: Boilerplate duplicated across `index.ts` and `[id].ts` (and again whenever S-01 adds routes) — easy for the error shape to drift between files over time.
   - Confidence: MEDIUM — works fine at 2 files; scales worse.
   - Blind spot: Whether S-01's API routes will actually reuse this pattern isn't verified — that plan doesn't exist yet.
-- **Decision**: PENDING
+- **Decision**: FIXED (via Fix A)
 
 ### F3 — Pagination trim/next-offset logic under-specified
 
@@ -71,7 +71,7 @@ Progress↔Phase mechanical contract: verified consistent — one `## Progress` 
 - **Location**: Phase 1 §4 (`listFlashcards`)
 - **Detail**: The contract says `.range(offset, offset + limit)` "fetches one extra row to compute nextOffset" (correct — Supabase `.range()` is inclusive on both ends, so this does fetch `limit + 1` rows), but never states that the service must slice the result back down to `limit` items before putting it in `FlashcardListResponse.items`, nor gives the `nextOffset` formula. An implementer could plausibly return `limit + 1` items to the client.
 - **Fix**: Add one sentence: "if `limit + 1` rows come back, return only the first `limit` in `items` and set `nextOffset = offset + limit`; otherwise return all rows and `nextOffset: null`."
-- **Decision**: PENDING
+- **Decision**: FIXED
 
 ### F4 — Topbar edit also surfaces on the public landing page
 
@@ -81,4 +81,4 @@ Progress↔Phase mechanical contract: verified consistent — one `## Progress` 
 - **Location**: Phase 3 §6 (Navigation wiring)
 - **Detail**: `<Topbar />` is used in two places, not one: `dashboard.astro` (the plan's target) and `src/components/Welcome.astro:28`, which renders on the public landing page `/` (`src/pages/index.astro`). Adding a "Flashcards" link to `Topbar.astro` will therefore also appear for any signed-in user who lands on `/`, not just on `/dashboard` and `/flashcards`. Likely harmless/desirable (consistent nav wherever Topbar renders), but the plan doesn't currently say so — worth a one-line acknowledgment rather than an implementer discovering it as a surprise.
 - **Fix**: Add a line to Phase 3 §6: "Note: `Topbar` also renders on the public landing page (`Welcome.astro`) — the new link will appear there too for signed-in users; this is intended."
-- **Decision**: PENDING
+- **Decision**: FIXED (also made explicit that the link stays in the authenticated branch only — not shown to signed-out visitors anywhere)

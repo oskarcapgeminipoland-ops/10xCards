@@ -99,14 +99,22 @@ Add `zod`, define the shared input schema and DTOs, build the Supabase-backed se
 **Intent**: Own every Supabase call this feature makes, so API routes (Phase 2) stay thin. Encapsulates the snake_case ↔ camelCase mapping and the search+pagination query shape.
 
 **Contract**: Given a Supabase client (already scoped to the caller's session — RLS handles ownership), export:
-- `listFlashcards(supabase, { search, offset, limit }) => Promise<FlashcardListResponse>` — applies `.ilike` search across `question`/`answer` when `search` is non-empty, orders by `created_at desc`, uses `.range(offset, offset + limit)` (fetches one extra row to compute `nextOffset` without a second count query).
-- `createFlashcard(supabase, input: FlashcardInput) => Promise<Flashcard>` — inserts with `source: 'manual'`, `status: 'active'`; `user_id` is NOT set explicitly (RLS `with check (auth.uid() = user_id)` requires a value, so this must come from the authenticated client — see note below on how the auth route sets it).
+- `listFlashcards(supabase, { search, offset, limit }) => Promise<FlashcardListResponse>` — applies `.ilike` search across `question`/`answer` when `search` is non-empty, orders by `created_at desc`, uses `.range(offset, offset + limit)` (fetches one extra row to compute `nextOffset` without a second count query). If `limit + 1` rows come back, return only the first `limit` in `items` and set `nextOffset = offset + limit`; otherwise return all rows and `nextOffset: null`.
+- `createFlashcard(supabase, userId: string, input: FlashcardInput) => Promise<Flashcard>` — inserts with `source: 'manual'`, `status: 'active'`, `user_id: userId` (RLS `with check (auth.uid() = user_id)` requires this value explicitly — see note below).
 - `updateFlashcard(supabase, id: string, input: FlashcardInput) => Promise<Flashcard | null>` — `.update().eq("id", id).select()`, returns `null` when the result array is empty (not-found-or-not-owned).
 - `deleteFlashcard(supabase, id: string) => Promise<boolean>` — `.delete().eq("id", id).select()`, returns `false` when the result array is empty.
 
 Note on `user_id` for insert: since it's `not null` with an RLS `with check`, the insert payload must include `user_id: user.id` explicitly (there's no DB default) — the service function takes the authenticated `user.id` as a parameter alongside `input`, sourced by the API route from `context.locals.user.id`.
 
-#### 5. Protect the new page route
+#### 5. Shared API error-handling helper
+
+**File**: `src/lib/api-helpers.ts` (new)
+
+**Intent**: Give every `/api/flashcards*` handler (Phase 2) one place that turns unexpected failures into the same `ApiErrorResponse` JSON shape used everywhere else, instead of letting them fall through as raw unhandled exceptions. This is the app's first JSON API, so the precedent set here carries into S-01's future routes too.
+
+**Contract**: Export `withApiErrorHandling(handler: APIRoute): APIRoute` — wraps a handler body in `try/catch`; an uncaught throw becomes a `500` `ApiErrorResponse`. Also export `parseIdParam(id: string | undefined): string` — validates the path param against `z.string().uuid()`, throwing a typed error `withApiErrorHandling` maps to `400` (not `500`) on failure. Phase 2's handlers use both: `parseIdParam` before querying by `id`, and `withApiErrorHandling` as the outer wrapper (which also naturally catches a malformed `context.request.json()` body as a `500` unless the handler itself catches that parse specifically and returns `400` — Phase 2 does the latter for `.json()` since a bad request body is a `400`, not a `500`).
+
+#### 6. Protect the new page route
 
 **File**: `src/middleware.ts`
 
@@ -142,9 +150,9 @@ Thin Astro API route handlers wrapping the Phase 1 service module: list (with se
 
 **Intent**: `GET` returns a page of the caller's flashcards (search + pagination); `POST` creates one.
 
-**Contract**: Both handlers: get the Supabase client via `createClient(context.request.headers, context.cookies)`; if `null`, return `500` with `ApiErrorResponse` ("Supabase is not configured"); if `context.locals.user` is absent, return `401`.
+**Contract**: Both handlers wrapped in `withApiErrorHandling` (Phase 1 §5). Inside: get the Supabase client via `createClient(context.request.headers, context.cookies)`; if `null`, return `500` with `ApiErrorResponse` ("Supabase is not configured"); if `context.locals.user` is absent, return `401`.
 - `GET`: parse `context.url.searchParams` with `flashcardListQuerySchema` (`400` + validation message on failure), call `listFlashcards`, return `200` with `FlashcardListResponse` as JSON.
-- `POST`: parse `await context.request.json()` with `flashcardInputSchema` (`400` on failure), call `createFlashcard(supabase, user.id, input)`, return `201` with the created `Flashcard` as JSON.
+- `POST`: parse `await context.request.json()` in its own `try/catch` (`400` "Invalid JSON body" on parse failure), validate with `flashcardInputSchema` (`400` on failure), call `createFlashcard(supabase, user.id, input)`, return `201` with the created `Flashcard` as JSON.
 
 #### 2. Update + delete endpoint
 
@@ -152,11 +160,11 @@ Thin Astro API route handlers wrapping the Phase 1 service module: list (with se
 
 **Intent**: `PATCH` edits one flashcard; `DELETE` removes one, by `id` path param.
 
-**Contract**: Same client/auth guard as above (`500`/`401`).
-- `PATCH`: parse body with `flashcardInputSchema` (`400` on failure), call `updateFlashcard(supabase, context.params.id, input)`; `404` + `ApiErrorResponse` if it returns `null`; otherwise `200` with the updated `Flashcard`.
-- `DELETE`: call `deleteFlashcard(supabase, context.params.id)`; `404` if it returns `false`; otherwise `204` with no body.
+**Contract**: Same client/auth guard as above (`500`/`401`), same `withApiErrorHandling` wrapper. Both handlers call `parseIdParam(context.params.id)` first (`400` on a non-UUID `id`, via `withApiErrorHandling`) before touching the service.
+- `PATCH`: parse body with `flashcardInputSchema` (`400` on failure, same JSON-parse handling as `POST` above), call `updateFlashcard(supabase, id, input)`; `404` + `ApiErrorResponse` if it returns `null`; otherwise `200` with the updated `Flashcard`.
+- `DELETE`: call `deleteFlashcard(supabase, id)`; `404` if it returns `false`; otherwise `204` with no body.
 
-All JSON responses use `Response.json(...)` (or `new Response(JSON.stringify(...), { status, headers: { "Content-Type": "application/json" } })` where a `204` needs no body). Every non-2xx response body is `ApiErrorResponse` (`{ error: string }`).
+All JSON responses use `Response.json(...)` (or `new Response(JSON.stringify(...), { status, headers: { "Content-Type": "application/json" } })` where a `204` needs no body). Every non-2xx response body is `ApiErrorResponse` (`{ error: string }`) — including the `500`/`400` cases now caught by `withApiErrorHandling`/`parseIdParam` instead of surfacing as raw unhandled exceptions.
 
 ### Success Criteria:
 
@@ -172,6 +180,7 @@ All JSON responses use `Response.json(...)` (or `new Response(JSON.stringify(...
 - `PATCH /api/flashcards/<id>` on another user's card (or a random UUID) returns `404`; on your own card returns `200` with updated content
 - `DELETE /api/flashcards/<id>` returns `204` then a subsequent `GET` no longer includes it
 - Any request without a valid session cookie returns `401` on every route above
+- `POST`/`PATCH` with a malformed JSON body returns `400` (not a raw 500); `PATCH`/`DELETE` with a non-UUID `id` (e.g. `/api/flashcards/not-a-uuid`) returns `400`
 
 ---
 
@@ -229,7 +238,9 @@ The `/flashcards` page: React island with infinite-scroll + searchable list, cre
 
 **Intent**: Make `/flashcards` discoverable — `Topbar` already has the auth-aware nav pattern, just needs one more link; `dashboard.astro` doesn't include `Topbar` at all today.
 
-**Contract**: In `Topbar.astro`, add a `Flashcards` link (`href="/flashcards"`) next to the existing `Dashboard` link, in the same authenticated branch (lines 13-15 area). In `dashboard.astro`, add `<Topbar />` above the existing centered card, matching how it'll be used on `/flashcards`.
+**Contract**: In `Topbar.astro`, add a `Flashcards` link (`href="/flashcards"`) next to the existing `Dashboard` link, in the same `user ? (...) : (...)` authenticated branch (lines 13-15 area) — **not** the unauthenticated branch, so the link is visible only to signed-in users, exactly like `Dashboard` is today. In `dashboard.astro`, add `<Topbar />` above the existing centered card, matching how it'll be used on `/flashcards`.
+
+Note: `Topbar` also renders on the public landing page (`src/components/Welcome.astro:28`, included by `src/pages/index.astro`) — the new "Flashcards" link will appear there too, but only for signed-in visitors (same auth-gated branch); this is intended, not a separate change.
 
 ### Success Criteria:
 
@@ -319,6 +330,7 @@ No schema changes in this plan — F-01's migrations are unmodified. No existing
 - [ ] 2.5 `PATCH /api/flashcards/<id>` returns 404 for not-found/not-owned, 200 on success
 - [ ] 2.6 `DELETE /api/flashcards/<id>` returns 204 and the row is gone on next `GET`
 - [ ] 2.7 Unauthenticated requests return 401 on every route
+- [ ] 2.8 Malformed JSON body and non-UUID `id` both return 400, not a raw 500
 
 ### Phase 3: UI — Flashcard Deck Page
 
