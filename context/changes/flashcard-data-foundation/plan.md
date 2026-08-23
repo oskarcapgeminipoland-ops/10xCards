@@ -228,9 +228,9 @@ This is a net-new table with no existing data to migrate. No backfill or rollbac
 
 #### Automated
 
-- [x] 2.1 `npx astro check` (or `npm run build`) passes
-- [x] 2.2 `npm run lint` passes
+- [x] 2.1 `npx astro check` (or `npm run build`) passes — d7432f2
+- [x] 2.2 `npm run lint` passes — d7432f2
 
 #### Manual
 
-- [x] 2.3 `Flashcard` type fields cross-checked against migration column list
+- [x] 2.3 `Flashcard` type fields cross-checked against migration column list — d7432f2
