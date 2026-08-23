@@ -37,7 +37,7 @@
   - Tradeoff: Relies on every future insert-writing developer remembering the constraint; one missed call site quietly re-opens the gap, and nothing in the DB would catch it.
   - Confidence: MEDIUM — reasonable only if S-01/S-03's plans get an explicit reminder never to trust client-supplied timestamps.
   - Blind spot: No mechanism currently guarantees that reminder reaches those future plans besides this review being read.
-- **Decision**: PENDING
+- **Decision**: FIXED (Fix A) — `supabase/migrations/20260823153107_enforce_server_side_flashcard_timestamps.sql` extends `set_updated_at()` to branch on `TG_OP = 'INSERT'` and adds a `before insert` trigger, forcing both `created_at` and `updated_at` server-side.
 
 ### F2 — RLS policies add `to authenticated`, beyond the plan's literal reference SQL
 
@@ -47,7 +47,7 @@
 - **Location**: supabase/migrations/20260823134802_create_flashcards_table.sql:57,62,67,73
 - **Detail**: All four RLS policies add `to authenticated`, which is not present in the plan's reference SQL snippet. This is a benign, defensible tightening (makes the owner-only intent explicit and keeps the `anon` role out of policy evaluation entirely) and does not change effective access control — `auth.uid() = user_id` already evaluates to false/null for unauthenticated requests. Not a violation of the "What We're NOT Doing" guardrails.
 - **Fix**: No action required — optionally note the addition in `plan.md` as an addendum for future readers comparing plan text to the applied migration.
-- **Decision**: PENDING
+- **Decision**: SKIPPED
 
 ### F3 — `set_updated_at()` has no explicit `search_path`
 
@@ -57,7 +57,7 @@
 - **Location**: supabase/migrations/20260823134802_create_flashcards_table.sql:39-47
 - **Detail**: The function is `plpgsql`, not `SECURITY DEFINER`, so it runs with invoker privileges — the classic search_path-hijack privilege-escalation vector doesn't apply here, and the function only touches `NEW`/`now()`. Still, Supabase's database linter (`0011_function_search_path_mutable`) flags any function lacking an explicit `search_path` as a best-practice gap.
 - **Fix**: Add `set search_path = ''` (or `= pg_catalog, public`) to the function definition in a follow-up migration, for defense-in-depth and to keep Supabase's advisor clean.
-- **Decision**: PENDING
+- **Decision**: ACCEPTED-AS-RULE: "Każda funkcja plpgsql w migracji Supabase musi mieć jawny search_path" (recorded in `context/foundation/lessons.md`; fix not applied to current code, deferred to future work).
 
 ## Notes
 

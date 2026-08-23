@@ -22,3 +22,10 @@
 - **Problem**: Znaleziska z `/10x-rule-review` objęły też treść wewnątrz bloku `10x-cli`. Za pierwszym razem agent zaproponował edycję dopiero z ostrzeżeniem po fakcie, a użytkownik musiał dwukrotnie doprecyzowywać zakres (raz "zostaw", raz "jednak napraw"), bo blok może zostać nadpisany przy kolejnym sync narzędzia.
 - **Rule**: Zanim zaproponujesz lub wykonasz edycję wewnątrz bloku oznaczonego znacznikiem BEGIN/END narzędzia zewnętrznego, zaznacz to wyraźnie i zapytaj o potwierdzenie zakresu, zanim przedstawisz plan zmian — nie traktuj go jak zwykłej treści projektowej.
 - **Applies to**: plan, implement, impl-review
+
+## Każda funkcja plpgsql w migracji Supabase musi mieć jawny search_path
+
+- **Context**: supabase/migrations/20260823134802_create_flashcards_table.sql:39-47 — definicja funkcji triggera `set_updated_at()`.
+- **Problem**: Funkcja plpgsql nie ma jawnie ustawionego `search_path`. Nie jest to obecnie exploitowalne (funkcja nie jest SECURITY DEFINER, invoker-only, dotyka wyłącznie NEW/now()), ale Supabase database linter (reguła 0011_function_search_path_mutable) i tak to zgłasza jako best-practice gap.
+- **Rule**: Każda nowa funkcja plpgsql w migracji Supabase musi jawnie ustawiać `search_path` (np. `set search_path = ''`), niezależnie od tego, czy jest SECURITY DEFINER.
+- **Applies to**: plan, implement, impl-review
