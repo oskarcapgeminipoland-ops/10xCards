@@ -252,11 +252,11 @@ Not applicable — no data model or schema changes in this plan.
 
 #### Automated
 
-- [x] 1.1 `npx astro check` (or `npm run build`) passes
-- [x] 1.2 `npm run lint` passes
+- [x] 1.1 `npx astro check` (or `npm run build`) passes — c7fe723
+- [x] 1.2 `npm run lint` passes — c7fe723
 
 #### Manual
 
-- [x] 1.3 Real completion round-trips through `complete()` via the temporary dev route
-- [x] 1.4 Timeout path returns a typed `{ type: "timeout" }` error instead of hanging
-- [x] 1.5 Temporary dev route file deleted before phase close
+- [x] 1.3 Real completion round-trips through `complete()` via the temporary dev route — c7fe723
+- [x] 1.4 Timeout path returns a typed `{ type: "timeout" }` error instead of hanging — c7fe723
+- [x] 1.5 Temporary dev route file deleted before phase close — c7fe723
