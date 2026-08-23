@@ -3,7 +3,7 @@ project: "10xCards"
 version: 1
 status: draft
 created: 2026-08-22
-updated: 2026-08-22
+updated: 2026-08-23
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -31,7 +31,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 
 | ID | Change ID | Outcome (user can …) | Prerequisites | PRD refs | Status |
 | --- | --- | --- | --- | --- | --- |
-| F-01 | flashcard-data-foundation | (foundation) schemat + migracja + RLS dla encji fiszki (per-user izolacja) | — | Success Criteria (Guardrails), Access Control, FR-001, FR-002 | planning |
+| F-01 | flashcard-data-foundation | (foundation) schemat + migracja + RLS dla encji fiszki (per-user izolacja) | — | Success Criteria (Guardrails), Access Control, FR-001, FR-002 | in-progress |
 | F-02 | ai-provider-integration | (foundation) minimalne okablowanie dostawcy AI (OpenRouter): klucz API, sekrety, cienki klient | — | FR-003, FR-004 | ready |
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | proposed |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | proposed |
@@ -71,7 +71,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Pominięcie jednego przemyślanego przejścia przez schemat + RLS teraz oznacza, że każdy kolejny slice (S-01–S-03) buduje na ad-hoc, nieprzejrzanym modelu danych zamiast na jednym miejscu, gdzie guardrail prywatności z PRD jest wymuszony raz, poprawnie.
-- **Status:** planning
+- **Status:** in-progress
 
 ### F-02: Okablowanie dostawcy AI
 
