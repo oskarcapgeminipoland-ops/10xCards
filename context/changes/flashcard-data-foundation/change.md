@@ -1,7 +1,7 @@
 ---
 change_id: flashcard-data-foundation
 title: Flashcard data foundation - schema, migration, and RLS
-status: implemented
+status: impl_reviewed
 created: 2026-08-22
 updated: 2026-08-23
 archived_at: null
