@@ -1,10 +1,10 @@
 ---
 change_id: ai-provider-integration
 title: AI provider integration - OpenRouter key, secrets, and thin client
-status: impl_reviewed
+status: archived
 created: 2026-08-23
 updated: 2026-08-23
-archived_at: null
+archived_at: 2026-08-23T17:02:09Z
 ---
 
 ## Notes
