@@ -320,34 +320,34 @@ No schema changes in this plan — F-01's migrations are unmodified. No existing
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npm run build` passes
+- [x] 2.1 `npm run lint` passes — c0ce420
+- [x] 2.2 `npm run build` passes — c0ce420
 
 #### Manual
 
-- [x] 2.3 `GET /api/flashcards` returns 200 + empty `items` for a fresh user
-- [x] 2.4 `POST /api/flashcards` returns 201 on valid input, 400 on over-limit input
-- [x] 2.5 `PATCH /api/flashcards/<id>` returns 404 for not-found/not-owned, 200 on success
-- [x] 2.6 `DELETE /api/flashcards/<id>` returns 204 and the row is gone on next `GET`
-- [x] 2.7 Unauthenticated requests return 401 on every route
-- [x] 2.8 Malformed JSON body and non-UUID `id` both return 400, not a raw 500
+- [x] 2.3 `GET /api/flashcards` returns 200 + empty `items` for a fresh user — c0ce420
+- [x] 2.4 `POST /api/flashcards` returns 201 on valid input, 400 on over-limit input — c0ce420
+- [x] 2.5 `PATCH /api/flashcards/<id>` returns 404 for not-found/not-owned, 200 on success — c0ce420
+- [x] 2.6 `DELETE /api/flashcards/<id>` returns 204 and the row is gone on next `GET` — c0ce420
+- [x] 2.7 Unauthenticated requests return 401 on every route — c0ce420
+- [x] 2.8 Malformed JSON body and non-UUID `id` both return 400, not a raw 500 — c0ce420
 
 ### Phase 3: UI — Flashcard Deck Page
 
 #### Automated
 
-- [ ] 3.1 `npm run lint` passes
-- [ ] 3.2 `npm run build` passes
+- [x] 3.1 `npm run lint` passes
+- [x] 3.2 `npm run build` passes
 
 #### Manual
 
-- [ ] 3.3 Signed-out visit to `/flashcards` redirects to sign-in
-- [ ] 3.4 Empty state + create CTA works on a fresh account
-- [ ] 3.5 Create flow: live validation, character counters, success toast, card appears
-- [ ] 3.6 Edit flow: pre-filled dialog, changes persist
-- [ ] 3.7 Delete flow: confirmation required, removal + toast on confirm
-- [ ] 3.8 Search filters the list (debounced)
-- [ ] 3.9 Infinite scroll loads next page past ~20 cards
-- [ ] 3.10 "Flashcards" nav link works from Topbar on both `/dashboard` and `/flashcards`
-- [ ] 3.11 Responsive at mobile width, no horizontal overflow
-- [ ] 3.12 Visual style consistent with existing dashboard/auth pages
+- [x] 3.3 Signed-out visit to `/flashcards` redirects to sign-in
+- [x] 3.4 Empty state + create CTA works on a fresh account
+- [x] 3.5 Create flow: live validation, character counters, success toast, card appears
+- [x] 3.6 Edit flow: pre-filled dialog, changes persist
+- [x] 3.7 Delete flow: confirmation required, removal + toast on confirm
+- [x] 3.8 Search filters the list (debounced)
+- [x] 3.9 Infinite scroll loads next page past ~20 cards
+- [x] 3.10 "Flashcards" nav link works from Topbar on both `/dashboard` and `/flashcards`
+- [x] 3.11 Responsive at mobile width, no horizontal overflow
+- [x] 3.12 Visual style consistent with existing dashboard/auth pages
