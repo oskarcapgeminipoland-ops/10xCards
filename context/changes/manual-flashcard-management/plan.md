@@ -336,18 +336,18 @@ No schema changes in this plan — F-01's migrations are unmodified. No existing
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run build` passes
+- [x] 3.1 `npm run lint` passes — 5c24f4f
+- [x] 3.2 `npm run build` passes — 5c24f4f
 
 #### Manual
 
-- [x] 3.3 Signed-out visit to `/flashcards` redirects to sign-in
-- [x] 3.4 Empty state + create CTA works on a fresh account
-- [x] 3.5 Create flow: live validation, character counters, success toast, card appears
-- [x] 3.6 Edit flow: pre-filled dialog, changes persist
-- [x] 3.7 Delete flow: confirmation required, removal + toast on confirm
-- [x] 3.8 Search filters the list (debounced)
-- [x] 3.9 Infinite scroll loads next page past ~20 cards
-- [x] 3.10 "Flashcards" nav link works from Topbar on both `/dashboard` and `/flashcards`
-- [x] 3.11 Responsive at mobile width, no horizontal overflow
-- [x] 3.12 Visual style consistent with existing dashboard/auth pages
+- [x] 3.3 Signed-out visit to `/flashcards` redirects to sign-in — 5c24f4f
+- [x] 3.4 Empty state + create CTA works on a fresh account — 5c24f4f
+- [x] 3.5 Create flow: live validation, character counters, success toast, card appears — 5c24f4f
+- [x] 3.6 Edit flow: pre-filled dialog, changes persist — 5c24f4f
+- [x] 3.7 Delete flow: confirmation required, removal + toast on confirm — 5c24f4f
+- [x] 3.8 Search filters the list (debounced) — 5c24f4f
+- [x] 3.9 Infinite scroll loads next page past ~20 cards — 5c24f4f
+- [x] 3.10 "Flashcards" nav link works from Topbar on both `/dashboard` and `/flashcards` — 5c24f4f
+- [x] 3.11 Responsive at mobile width, no horizontal overflow — 5c24f4f
+- [x] 3.12 Visual style consistent with existing dashboard/auth pages — 5c24f4f
