@@ -20,3 +20,26 @@ export interface Flashcard {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * Shared create/edit input shape for `/api/flashcards*`.
+ *
+ * `source`/`status` are never client-supplied: the server sets
+ * `source: 'manual'` on create, and update never touches `source`/`status`.
+ */
+export interface FlashcardInput {
+  question: string;
+  answer: string;
+}
+
+/** Response body for `GET /api/flashcards`. */
+export interface FlashcardListResponse {
+  items: Flashcard[];
+  /** Offset to request next, or `null` when there are no more pages. */
+  nextOffset: number | null;
+}
+
+/** The one error shape every `/api/flashcards*` route returns on non-2xx. */
+export interface ApiErrorResponse {
+  error: string;
+}

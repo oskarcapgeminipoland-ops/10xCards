@@ -308,8 +308,8 @@ No schema changes in this plan — F-01's migrations are unmodified. No existing
 
 #### Automated
 
-- [ ] 1.1 `npm run lint` passes
-- [ ] 1.2 `npm run build` passes
+- [x] 1.1 `npm run lint` passes
+- [x] 1.2 `npm run build` passes
 
 #### Manual
 
