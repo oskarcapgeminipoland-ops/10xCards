@@ -308,29 +308,29 @@ No schema changes in this plan — F-01's migrations are unmodified. No existing
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npm run build` passes
+- [x] 1.1 `npm run lint` passes — 80187da
+- [x] 1.2 `npm run build` passes — 80187da
 
 #### Manual
 
-- [ ] 1.3 `zod` in `package.json` dependencies and installed
-- [ ] 1.4 `/flashcards` present in `PROTECTED_ROUTES`
+- [x] 1.3 `zod` in `package.json` dependencies and installed — 80187da
+- [x] 1.4 `/flashcards` present in `PROTECTED_ROUTES` — 80187da
 
 ### Phase 2: API Routes
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npm run build` passes
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npm run build` passes
 
 #### Manual
 
-- [ ] 2.3 `GET /api/flashcards` returns 200 + empty `items` for a fresh user
-- [ ] 2.4 `POST /api/flashcards` returns 201 on valid input, 400 on over-limit input
-- [ ] 2.5 `PATCH /api/flashcards/<id>` returns 404 for not-found/not-owned, 200 on success
-- [ ] 2.6 `DELETE /api/flashcards/<id>` returns 204 and the row is gone on next `GET`
-- [ ] 2.7 Unauthenticated requests return 401 on every route
-- [ ] 2.8 Malformed JSON body and non-UUID `id` both return 400, not a raw 500
+- [x] 2.3 `GET /api/flashcards` returns 200 + empty `items` for a fresh user
+- [x] 2.4 `POST /api/flashcards` returns 201 on valid input, 400 on over-limit input
+- [x] 2.5 `PATCH /api/flashcards/<id>` returns 404 for not-found/not-owned, 200 on success
+- [x] 2.6 `DELETE /api/flashcards/<id>` returns 204 and the row is gone on next `GET`
+- [x] 2.7 Unauthenticated requests return 401 on every route
+- [x] 2.8 Malformed JSON body and non-UUID `id` both return 400, not a raw 500
 
 ### Phase 3: UI — Flashcard Deck Page
 
