@@ -3,7 +3,7 @@ project: "10xCards"
 version: 1
 status: draft
 created: 2026-08-22
-updated: 2026-08-23
+updated: 2026-08-24
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -35,7 +35,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | F-02 | ai-provider-integration | (foundation) minimalne okablowanie dostawcy AI (OpenRouter): klucz API, sekrety, cienki klient | — | FR-003, FR-004 | done |
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | proposed |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | proposed |
-| S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | proposed |
+| S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | in-progress |
 
 ## Streams
 
@@ -124,7 +124,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Unknowns:**
   - FR-005, FR-007, FR-008 nie mają udokumentowanych historii Given/When/Then w PRD (tylko sam tekst FR) — Owner: user. Block: no (tekst FR + Socrates-rationale w PRD wystarczają jako pasek akceptacji; brak dedykowanego AC nie blokuje planowania).
 - **Risk:** Ręczne zarządzanie to wymagany "siatka bezpieczeństwa" (guardrail: manualna ścieżka działa niezależnie od dostępności AI), ale nie testuje głównej hipotezy produktu — stąd sekwencjonowany po parze walidacyjnej S-01/S-02, choć może być budowany równolegle przez drugiego agenta.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Backlog Handoff
 
