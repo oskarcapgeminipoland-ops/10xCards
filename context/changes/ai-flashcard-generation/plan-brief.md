@@ -4,7 +4,7 @@
 
 ## What & Why
 
-Users paste a block of source text and get back 3–15 AI-generated flashcard proposals, which they individually accept, edit-then-accept, or reject — accepted ones land in their existing deck immediately. This is the roadmap's north-star slice (S-01): the only PRD story with a full Given/When/Then, and the only one that directly tests the product's core hypothesis (that AI-generated flashcards are good enough for 75% of them to be accepted rather than rejected).
+Users paste a block of source text and get back 3–5 AI-generated flashcard proposals, which they individually accept, edit-then-accept, or reject — accepted ones land in their existing deck immediately. This is the roadmap's north-star slice (S-01): the only PRD story with a full Given/When/Then, and the only one that directly tests the product's core hypothesis (that AI-generated flashcards are good enough for 75% of them to be accepted rather than rejected).
 
 ## Starting Point
 
@@ -20,14 +20,14 @@ A logged-in user on `/flashcards` clicks "Generate with AI," pastes text on a ne
 | --- | --- | --- |
 | Proposal persistence | Dedicated `POST /api/flashcards/accept` endpoint, separate from manual create | Keeps `source: 'ai'` from ever being spoofable through the manual-create path; no schema change needed since the enum already supports it |
 | Progress UX | Cosmetic spinner + elapsed timer + rotating status text, one non-streaming call | Satisfies the NFR without touching the F-02 client contract or adding streaming infra to a slice already flagged HIGH complexity |
-| AI output shape | JSON array of `{question, answer}`, model picks a count in a 3–15 bound | Simplest prompt design; no extra count-picker UI to build |
+| AI output shape | JSON array of `{question, answer}`, model picks a count in a 3–5 bound, answer capped at 500 chars (tighter than the DB's 1000) | Simplest prompt design; bound narrowed during plan review to keep worst-case response comfortably inside the maxTokens budget — expected to increase once real output quality is observed |
 | Source text limit | Hard 5000-char cap, client + server | Bounds token cost and keeps generation inside the existing 30s client timeout |
 | Malformed AI output | Drop invalid items via `flashcardInputSchema`, keep the rest | Reuses existing validation exactly; user still gets usable results from a partially-bad response |
 | Error handling | Typed error → specific toast message + manual retry button | Matches `openrouter.ts`'s existing typed-error contract; no new retry/backoff infra |
 | Edit-before-accept | Reuse `FlashcardForm` in a dialog, repurposed to edit local state | Zero new form code — same component, same validation, same char counters |
 | Bulk actions | None — per-card accept/edit/reject only | Matches PRD's per-proposal review requirement exactly; avoids rubber-stamping AI output |
 | Metrics/event log | Deferred entirely — not built in this slice | Keeps an already-HIGH-complexity slice focused on the core loop; F-01 explicitly left this decision to S-01 |
-| Routing | Dedicated page `/flashcards/generate`, not a dialog | Matches this project's established "dedicated page + deliberate URL routing" standard; a paste + up-to-15-card review flow is too heavy for a dialog |
+| Routing | Dedicated page `/flashcards/generate`, not a dialog | Matches this project's established "dedicated page + deliberate URL routing" standard; a paste + multi-card review flow is too heavy for a dialog |
 | Regenerate | "Generate again" replaces the list, confirming only if proposals are still pending | Mitigates known free-tier output variability cheaply — reuses the same generate call |
 
 ## Scope
@@ -55,7 +55,7 @@ Three phases: (1) an AI generation service (`src/lib/services/flashcard-generati
 
 - `openrouter/free` is a random-selection router across whatever free models are currently healthy — response quality and consistency will vary call to call; live 429s were already observed during F-02 testing.
 - Without any event log, the actual 75%-acceptance north-star metric cannot be measured from this slice's data alone — it's a deliberate scope cut, not an oversight, but it means validating the product hypothesis will require a manual/qualitative read (or a future slice) rather than a dashboard.
-- Prompt reliability for free-tier models is unproven at this repo's scale; the 3–15 count bound and JSON-only instruction may need tuning after real usage.
+- Prompt reliability for free-tier models is unproven at this repo's scale; the 3–5 count bound and JSON-only instruction may need tuning after real usage. The bound is intentionally conservative for now (narrowed during plan review to fit the `maxTokens` budget with margin) and is expected to be raised once real output quality is observed.
 
 ## Success Criteria (Summary)
 

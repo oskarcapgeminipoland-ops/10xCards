@@ -6,14 +6,14 @@ Implements S-01, the roadmap's north-star slice: a logged-in user pastes source 
 
 ## Current State Analysis
 
-- **Data**: `public.flashcards` (migration `20260823134802_create_flashcards_table.sql`) already has `source text check (source in ('ai', 'manual'))` and a single reserved `status` value `'active'`. No staging/proposal table exists — F-01's plan explicitly deferred that design to this slice, and (per the questioning above) this plan does not add one: proposals live only in client-side React state until accepted.
-- **AI client**: `src/lib/openrouter.ts` exports a working, non-throwing `complete({ messages, model?, temperature?, maxTokens?, timeoutMs? }): Promise<{ data: {content, model} | null; error: OpenRouterClientError | null }>` wrapper around OpenRouter's chat-completions endpoint (`DEFAULT_MODEL = "openrouter/free"`, `DEFAULT_TIMEOUT_MS = 30000`). It is single-shot and non-streaming by design — F-02's plan explicitly punted streaming to this slice, and this plan does not add it (see questioning above: cosmetic progress UX was chosen instead).
+- **Data**: `public.flashcards` (migration `20260823134802_create_flashcards_table.sql`) already has `source text check (source in ('ai', 'manual'))` and a single reserved `status` value `'active'`. No staging/proposal table exists — F-01's plan explicitly deferred that design to this slice, and this plan does not add one: proposals live only in client-side React state until accepted.
+- **AI client**: `src/lib/openrouter.ts` exports a working, non-throwing `complete({ messages, model?, temperature?, maxTokens?, timeoutMs? }): Promise<{ data: {content, model} | null; error: OpenRouterClientError | null }>` wrapper around OpenRouter's chat-completions endpoint (`DEFAULT_MODEL = "openrouter/free"`, `DEFAULT_TIMEOUT_MS = 30000`). It is single-shot and non-streaming by design — F-02's plan explicitly punted streaming to this slice, and this plan does not add it (cosmetic progress UX was chosen instead).
 - **CRUD precedent (S-03)**: `src/lib/services/flashcards.ts` (`createFlashcard`, `listFlashcards`, `updateFlashcard`, `deleteFlashcard`), `src/lib/schemas/flashcard.ts` (`flashcardInputSchema`: question ≤500 chars, answer ≤1000 chars, non-empty after trim), `src/lib/api-helpers.ts` (`withApiErrorHandling`, `jsonError`, `ApiError`, `parseIdParam`), and `src/pages/api/flashcards/{index,[id]}.ts` establish the JSON-API and auth-guard conventions this slice follows exactly. `src/components/flashcards/{FlashcardDeck,FlashcardForm,DeleteFlashcardDialog}.tsx` establish the UI conventions (shadcn `new-york` primitives, Sonner toasts, `apiRequest<T>` fetch helper, live zod validation with character counters).
 - **Routing**: `src/middleware.ts:4` protects any path starting with `/flashcards` (prefix match via `startsWith`), so a new `/flashcards/generate` page is automatically protected with no middleware change. API routes are not covered by this prefix (`/api/flashcards/...` doesn't start with `/flashcards`) and rely on the existing explicit `context.locals.user` guard, same as `index.ts`/`[id].ts`.
 
 ## Desired End State
 
-A logged-in user on `/flashcards` clicks "Generate with AI" and lands on `/flashcards/generate`. They paste source text (≤5000 chars, live counter) and click Generate. While the request is in flight they see a spinner, an elapsed-time counter, and rotating status text — never a blank screen. On success they see 3–15 proposal cards, each with Accept / Edit / Reject. Edit opens the existing `FlashcardForm` pre-filled, saving changes locally (not yet persisted). Accept persists the (possibly edited) card immediately with `source: 'ai'` and removes it from the review list; it's now visible in `/flashcards` like any other card. Reject removes it from the list with no server call. A "Generate again" button re-runs generation over the same text, warning first if any proposals are still unreviewed. Any failure (config/timeout/network/API, including a 429 rate-limit) shows a specific message with a manual retry button.
+A logged-in user on `/flashcards` clicks "Generate with AI" and lands on `/flashcards/generate`. They paste source text (≤5000 chars, live counter) and click Generate. While the request is in flight they see a spinner, an elapsed-time counter, and rotating status text — never a blank screen. On success they see 3–5 proposal cards, each with Accept / Edit / Reject. Edit opens the existing `FlashcardForm` pre-filled, saving changes locally (not yet persisted). Accept persists the (possibly edited) card immediately with `source: 'ai'` and removes it from the review list; it's now visible in `/flashcards` like any other card. Reject removes it from the list with no server call. A "Generate again" button re-runs generation over the same text, warning first if any proposals are still unreviewed. Any failure (config/timeout/network/API, including a 429 rate-limit) shows a specific message with a manual retry button.
 
 ### Key Discoveries:
 
@@ -26,7 +26,7 @@ A logged-in user on `/flashcards` clicks "Generate with AI" and lands on `/flash
 - No DB migration — `source: 'ai'` already exists; no staging table, no new `status` value.
 - No generation-event/metrics log — the 75%-acceptance criterion is not measured by this slice (explicitly deferred; rejected proposals leave no trace).
 - No SSE/token streaming — one non-streaming `complete()` call per generation, cosmetic progress UX only.
-- No user-configurable proposal count — the model picks a count within a 3–15 bound.
+- No user-configurable proposal count — the model picks a count within a 3–5 bound (deliberately conservative; see the note in Critical Implementation Details — expected to be raised once real output quality is observed).
 - No chunking of long source text — a hard 5000-character client+server cap instead.
 - No bulk "accept all" action — per-card review only.
 - No automatic retry/backoff on generation failure — manual "Try again" button only.
@@ -37,6 +37,8 @@ A logged-in user on `/flashcards` clicks "Generate with AI" and lands on `/flash
 ## Implementation Approach
 
 Three vertical phases, mirroring the schema → business logic → API → clients convention: (1) the AI-calling service and validation, since there's no schema to change; (2) thin API routes over that service, following the `withApiErrorHandling` pattern exactly; (3) the UI, reusing `FlashcardForm` for edit-before-accept and the established dialog/toast/character-counter idioms from S-03.
+
+`POST /api/flashcards/generate` and `/accept` are intentionally RPC-style action endpoints rather than following `index.ts`/`[id].ts`'s resource-oriented REST convention — a deliberate choice to keep `source: 'ai'` from ever being spoofable through the manual-create path, not a pattern-consistency oversight.
 
 ## Critical Implementation Details
 
@@ -50,7 +52,7 @@ that test recall of the text's key facts, vocabulary, or concepts. Respond with
 ONLY a JSON array of objects, each with exactly two string fields: "question" and
 "answer". Do not include markdown formatting, code fences, or any text outside the
 JSON array. Each question must be 500 characters or fewer; each answer must be
-1000 characters or fewer. Produce between 3 and 15 flashcards, choosing a count
+500 characters or fewer. Produce between 3 and 5 flashcards, choosing a count
 proportional to how much distinct, testable content the text contains.
 
 USER:
@@ -64,7 +66,9 @@ function stripCodeFence(content: string): string {
 }
 ```
 
-After parsing, validate each array item with `flashcardInputSchema.safeParse` (dropping failures), then cap the surviving list to 15 items. Call `complete()` with `temperature: 0.4, maxTokens: 3000` (default `timeoutMs`/`model` from `openrouter.ts`) — 3000 tokens comfortably covers 15 pairs at the 500/1000-char DB limits with headroom.
+**Note on the 3–5 / 500-char bound**: this is deliberately conservative — narrowed during plan review (from an initial 3–15 proposals / 500-question / 1000-answer bound) specifically to keep the worst-case response comfortably inside the `maxTokens: 3000` budget without needing truncation-recovery code. The DB's own limits remain question ≤500 / answer ≤1000 (unchanged, still enforced by `flashcardInputSchema` for every flashcard including manual ones) — this prompt-level bound is a tighter, AI-specific instruction layered on top. Expect this bound to be revisited and raised once real free-tier output quality/length is observed in production.
+
+After parsing, validate each array item with `flashcardInputSchema.safeParse` (dropping failures), then cap the surviving list to 5 items. Call `complete()` with `temperature: 0.4, maxTokens: 3000` (default `timeoutMs`/`model` from `openrouter.ts`) — the new worst case (5 pairs at 500/500 chars ≈ 5,175 characters ≈ ~1,300 tokens) leaves the 3000-token budget with over 2x headroom.
 
 **Regenerate confirm timing.** "Generate again" must warn before replacing the list only when the current list is non-empty (i.e., proposals are still pending review) — if the user has already resolved every proposal (accepted or rejected all of them), replacing an empty list needs no confirmation.
 
@@ -127,7 +131,7 @@ export interface GenerateFlashcardsResponse {
 
 #### Manual Verification:
 
-- Calling `generateFlashcardProposals` with sample text (e.g. via a scratch script or the Astro dev server's node console) returns a `FlashcardInput[]` with 3–15 items, none exceeding the 500/1000-char limits.
+- Calling `generateFlashcardProposals` with sample text (e.g. via a scratch script or the Astro dev server's node console) returns a `FlashcardInput[]` with 3–5 items, none exceeding 500 characters for question or answer.
 - Feeding it a source text engineered to trigger a code-fenced or malformed AI response still returns a valid (possibly shorter, possibly empty) array rather than throwing.
 
 ---
@@ -212,7 +216,7 @@ The paste → generate → review flow, plus the entry point from the existing d
 
 **Intent**: Own the full paste → generate → review state machine: a textarea with live character count/validation (reusing the `generateRequestSchema` limit and the counter pattern from `FlashcardForm`), a Generate button that calls `POST /api/flashcards/generate` and shows a spinner + elapsed-time counter + rotating status text while in flight, a review list of proposal cards (each accept/edit/reject), and a "Generate again" action per the Critical Implementation Details confirm-timing rule.
 
-**Contract**: No props (mirrors `FlashcardDeck`'s no-props pattern). Internal state: `sourceText`, `phase: "idle" | "generating" | "reviewing" | "error"`, `proposals: (FlashcardInput & { clientId: string })[]` (a client-generated `clientId`, e.g. via `crypto.randomUUID()`, is assigned on receipt for React keys and local edit state — never sent to the accept endpoint), `editingProposal: (...) | null`, `error: string | null`. Reuses the existing `apiRequest<T>` fetch-helper pattern from `FlashcardDeck.tsx`. Edit reuses `FlashcardForm` in a `Dialog`, but its `onSubmit` updates the local proposal's `question`/`answer` in state rather than calling an API — persistence only happens on Accept. Accept calls `POST /api/flashcards/accept` with the (possibly edited) `{question, answer}`, and on success removes the item from `proposals` and shows a success toast. Reject removes the item from `proposals` with no server call. Apply the S-03 long-text-overflow pattern (`grid-cols-1` not bare `grid`, `min-w-0` at each nesting level, `break-words` on text) to the proposal cards, since AI output is exactly the kind of arbitrary-length text that fix addressed.
+**Contract**: No props (mirrors `FlashcardDeck`'s no-props pattern). On a successful generate call, if `droppedCount > 0` show an informational toast (e.g. "N flashcards generated — M skipped due to formatting issues") alongside the proposal list, so a partially-invalid AI response is never silently invisible to the user. Internal state: `sourceText`, `phase: "idle" | "generating" | "reviewing" | "error"`, `proposals: (FlashcardInput & { clientId: string })[]` (a client-generated `clientId`, e.g. via `crypto.randomUUID()`, is assigned on receipt for React keys and local edit state — never sent to the accept endpoint), `editingProposal: (...) | null`, `error: string | null`. Reuses the existing `apiRequest<T>` fetch-helper pattern from `FlashcardDeck.tsx`. Edit reuses `FlashcardForm` in a `Dialog`, but its `onSubmit` updates the local proposal's `question`/`answer` in state rather than calling an API — persistence only happens on Accept. Accept calls `POST /api/flashcards/accept` with the (possibly edited) `{question, answer}`; a per-proposal `accepting` flag (mirroring `DeleteFlashcardDialog`'s `deleting` state) disables that card's buttons and shows a spinner while the request is in flight. On success it removes the item from `proposals` and shows a success toast. On failure the proposal stays in the list, `accepting` clears, and an error toast is shown — the user can retry the same card. Reject removes the item from `proposals` with no server call. Apply the S-03 long-text-overflow pattern (`grid-cols-1` not bare `grid`, `min-w-0` at each nesting level, `break-words` on text) to the proposal cards, since AI output is exactly the kind of arbitrary-length text that fix addressed.
 
 ### Success Criteria:
 
@@ -282,7 +286,7 @@ None — no schema migration. `source: 'ai'` already exists on `public.flashcard
 
 #### Manual
 
-- [ ] 1.3 `generateFlashcardProposals` returns 3–15 valid `FlashcardInput` items for sample text
+- [ ] 1.3 `generateFlashcardProposals` returns 3–5 valid `FlashcardInput` items for sample text
 - [ ] 1.4 Malformed/code-fenced AI response is handled without throwing
 
 ### Phase 2: API Routes

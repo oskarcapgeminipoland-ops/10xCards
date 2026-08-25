@@ -1,7 +1,7 @@
 ---
 change_id: ai-flashcard-generation
 title: Generate and triage AI flashcard proposals from pasted text
-status: planned
+status: plan_reviewed
 created: 2026-08-25
 updated: 2026-08-25
 archived_at: null
