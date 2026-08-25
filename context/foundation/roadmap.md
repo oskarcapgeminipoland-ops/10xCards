@@ -3,7 +3,7 @@ project: "10xCards"
 version: 1
 status: draft
 created: 2026-08-22
-updated: 2026-08-24
+updated: 2026-08-25
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -35,7 +35,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | F-02 | ai-provider-integration | (foundation) minimalne okablowanie dostawcy AI (OpenRouter): klucz API, sekrety, cienki klient | — | FR-003, FR-004 | done |
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | proposed |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | proposed |
-| S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | in-progress |
+| S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | done |
 
 ## Streams
 
@@ -124,7 +124,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Unknowns:**
   - FR-005, FR-007, FR-008 nie mają udokumentowanych historii Given/When/Then w PRD (tylko sam tekst FR) — Owner: user. Block: no (tekst FR + Socrates-rationale w PRD wystarczają jako pasek akceptacji; brak dedykowanego AC nie blokuje planowania).
 - **Risk:** Ręczne zarządzanie to wymagany "siatka bezpieczeństwa" (guardrail: manualna ścieżka działa niezależnie od dostępności AI), ale nie testuje głównej hipotezy produktu — stąd sekwencjonowany po parze walidacyjnej S-01/S-02, choć może być budowany równolegle przez drugiego agenta.
-- **Status:** in-progress
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -155,3 +155,4 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 
 - **F-01: (foundation) w bazie istnieje encja fiszki (pytanie, odpowiedź, właściciel, źródło ai/manual, status) z politykami RLS wymuszającymi, że użytkownik widzi wyłącznie własne fiszki.** — Archived 2026-08-23 → `context/archive/2026-08-22-flashcard-data-foundation/`. Lesson: —.
 - **F-02: (foundation) skonfigurowany dostawca AI (OpenRouter) — klucz API zarządzany jako sekret (`wrangler secret put`), minimalny klient/wrapper gotowy do wywołania z kodu generowania.** — Archived 2026-08-23 → `context/archive/2026-08-23-ai-provider-integration/`. Lesson: —.
+- **S-03: ręcznie tworzy fiszkę niezależnie od AI, edytuje istniejącą fiszkę oraz usuwa fiszkę po potwierdzeniu w dialogu.** — Archived 2026-08-25 → `context/archive/2026-08-23-manual-flashcard-management/`. Lesson: —.

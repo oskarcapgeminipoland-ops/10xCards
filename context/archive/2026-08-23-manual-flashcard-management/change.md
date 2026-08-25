@@ -1,10 +1,10 @@
 ---
 change_id: manual-flashcard-management
 title: Manual flashcard management - create, edit, and delete
-status: impl_reviewed
+status: archived
 created: 2026-08-23
 updated: 2026-08-25
-archived_at: null
+archived_at: 2026-08-25T15:57:33Z
 ---
 
 ## Notes
