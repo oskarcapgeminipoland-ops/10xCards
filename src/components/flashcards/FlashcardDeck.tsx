@@ -230,7 +230,7 @@ export default function FlashcardDeck() {
       )}
 
       {loading ? (
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {Array.from({ length: 4 }).map((_, index) => (
             <Skeleton key={index} className="h-24 w-full rounded-xl bg-white/10" />
           ))}
@@ -255,9 +255,9 @@ export default function FlashcardDeck() {
           )}
         </div>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {flashcards.map((flashcard) => (
-            <Card key={flashcard.id} className="border-white/10 bg-white/5 text-white backdrop-blur-xl">
+            <Card key={flashcard.id} className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl">
               <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium break-words text-white">{flashcard.question}</p>
