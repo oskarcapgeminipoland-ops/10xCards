@@ -29,3 +29,10 @@
 - **Problem**: Funkcja plpgsql nie ma jawnie ustawionego `search_path`. Nie jest to obecnie exploitowalne (funkcja nie jest SECURITY DEFINER, invoker-only, dotyka wyłącznie NEW/now()), ale Supabase database linter (reguła 0011_function_search_path_mutable) i tak to zgłasza jako best-practice gap.
 - **Rule**: Każda nowa funkcja plpgsql w migracji Supabase musi jawnie ustawiać `search_path` (np. `set search_path = ''`), niezależnie od tego, czy jest SECURITY DEFINER.
 - **Applies to**: plan, implement, impl-review
+
+## Escapuj wszystkie metaznaki mini-języka filtrów PostgREST, nie tylko SQL-LIKE
+
+- **Context**: src/lib/services/flashcards.ts:51-53 — interpolacja tekstu wyszukiwania do stringa filtra .or() klienta Supabase JS.
+- **Problem**: Escapowane były tylko wildcardy SQL-LIKE (%, _), ale nie znaki specjalne samego mini-języka filtrów PostgREST (, . ( )), przez co wyszukiwana fraza mogła wstrzyknąć dodatkowe warunki do zapytania. RLS ograniczał skutek do własnych wierszy użytkownika (brak wycieku między kontami), ale to nadal był niezaufany input trafiający do ręcznie budowanego stringa zapytania.
+- **Rule**: Przy interpolowaniu inputu użytkownika do dowolnego stringa filtra Supabase/PostgREST (.or(), .filter() itp.) escapuj wszystkie metaznaki tego mini-języka (, . ( ) oraz \), nie tylko te istotne dla bieżącego przypadku — albo unikaj interpolacji stringów na rzecz łańcuchowanych wywołań .ilike()/.eq(), które przyjmują wartość jako parametr.
+- **Applies to**: plan, implement, impl-review

@@ -49,7 +49,10 @@ export async function listFlashcards(
   let query = supabase.from("flashcards").select("*");
 
   if (search) {
-    const escaped = search.replace(/[%_]/g, (match) => `\\${match}`);
+    // Escape SQL-LIKE wildcards (%, _) and PostgREST .or() mini-language
+    // separators (, . ( )) — plus backslash itself — before interpolating
+    // user input into the filter string.
+    const escaped = search.replace(/[\\%_,.()]/g, (match) => `\\${match}`);
     query = query.or(`question.ilike.%${escaped}%,answer.ilike.%${escaped}%`);
   }
 
