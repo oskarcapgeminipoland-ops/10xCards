@@ -293,29 +293,29 @@ None — no schema migration. `source: 'ai'` already exists on `public.flashcard
 
 #### Automated
 
-- [x] 2.1 Linting passes: `npm run lint`
-- [x] 2.2 Build succeeds: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint` — 9bdfb0c
+- [x] 2.2 Build succeeds: `npm run build` — 9bdfb0c
 
 #### Manual
 
-- [x] 2.3 `POST /api/flashcards/generate` returns 200 with proposals when authenticated, 401 when not
-- [x] 2.4 `POST /api/flashcards/generate` returns 400 for source text over 5000 chars
-- [x] 2.5 `POST /api/flashcards/accept` returns 201 and persists with `source: 'ai'`
-- [x] 2.6 A simulated 429 surfaces status 429 with the rate-limit message
+- [x] 2.3 `POST /api/flashcards/generate` returns 200 with proposals when authenticated, 401 when not — 9bdfb0c
+- [x] 2.4 `POST /api/flashcards/generate` returns 400 for source text over 5000 chars — 9bdfb0c
+- [x] 2.5 `POST /api/flashcards/accept` returns 201 and persists with `source: 'ai'` — 9bdfb0c
+- [x] 2.6 A simulated 429 surfaces status 429 with the rate-limit message — 9bdfb0c
 
 ### Phase 3: UI — Generation Page & Review Flow
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `npm run lint`
-- [ ] 3.2 Build succeeds: `npm run build`
+- [x] 3.1 Linting passes: `npm run lint`
+- [x] 3.2 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 3.3 Full US-01 walkthrough: paste → generate → accept/edit-accept/reject → accepted cards appear in `/flashcards`
-- [ ] 3.4 Rejected proposals never appear in `/flashcards`
-- [ ] 3.5 Edited-then-accepted card shows edited content, not original AI text
-- [ ] 3.6 "Generate again" confirms before replacing a non-empty pending list; no prompt when list is empty
-- [ ] 3.7 Long text wraps correctly on proposal cards, no horizontal overflow
-- [ ] 3.8 Simulated generation failure shows specific error + working retry, never a blank screen
-- [ ] 3.9 Responsive check at mobile/tablet/desktop widths
+- [x] 3.3 Full US-01 walkthrough: paste → generate → accept/edit-accept/reject → accepted cards appear in `/flashcards`
+- [x] 3.4 Rejected proposals never appear in `/flashcards`
+- [x] 3.5 Edited-then-accepted card shows edited content, not original AI text
+- [x] 3.6 "Generate again" confirms before replacing a non-empty pending list; no prompt when list is empty
+- [x] 3.7 Long text wraps correctly on proposal cards, no horizontal overflow
+- [x] 3.8 Simulated generation failure shows specific error + working retry, never a blank screen
+- [x] 3.9 Responsive check at mobile/tablet/desktop widths
