@@ -19,7 +19,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { generateRequestSchema } from "@/lib/schemas/flashcard";
 import { FlashcardForm } from "@/components/flashcards/FlashcardForm";
-import type { ApiErrorResponse, Flashcard, FlashcardInput, GenerateFlashcardsResponse } from "@/types";
+import type {
+  ApiErrorResponse,
+  Flashcard,
+  FlashcardInput,
+  GenerateFlashcardsRequest,
+  GenerateFlashcardsResponse,
+} from "@/types";
 
 const SOURCE_TEXT_LIMIT = 5000;
 
@@ -107,7 +113,7 @@ export default function FlashcardGenerator() {
       const data = await apiRequest<GenerateFlashcardsResponse>("/api/flashcards/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceText }),
+        body: JSON.stringify({ sourceText } satisfies GenerateFlashcardsRequest),
       });
       const withIds = data.proposals.map((proposal) => ({ ...proposal, clientId: crypto.randomUUID() }));
       setProposals(withIds);
@@ -124,7 +130,7 @@ export default function FlashcardGenerator() {
   }
 
   function handleGenerateClick() {
-    if (!parsedSource.success || phase === "generating") {
+    if (!parsedSource.success || phase === "generating" || acceptingIds.size > 0) {
       return;
     }
     if (proposals.length > 0) {
@@ -203,7 +209,7 @@ export default function FlashcardGenerator() {
 
           <Button
             onClick={handleGenerateClick}
-            disabled={!parsedSource.success || phase === "generating"}
+            disabled={!parsedSource.success || phase === "generating" || acceptingIds.size > 0}
             className="gap-2 bg-purple-600 text-white hover:bg-purple-500 disabled:opacity-50"
           >
             {phase === "generating" ? (

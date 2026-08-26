@@ -114,6 +114,8 @@ export interface GenerateFlashcardsResponse {
 
 **Contract**: `export async function generateFlashcardProposals(sourceText: string): Promise<{ data: { proposals: FlashcardInput[]; droppedCount: number } | null; error: OpenRouterClientError | null }>` — uses the exact prompt and `stripCodeFence` function from Critical Implementation Details; `droppedCount` is the number of parsed items that failed `flashcardInputSchema` and were discarded.
 
+> **Post-implementation note** (added after impl review, finding F1): the parse/validate/cap pipeline (`stripCodeFence`, `parseGeneratedContent`) was split out into a sibling file `src/lib/services/flashcard-generation-parse.ts` rather than living inside `flashcard-generation.ts` as originally described here. `flashcard-generation.ts` imports `@/lib/openrouter`, which imports `astro:env/server` — a module only resolvable inside Astro's runtime. Keeping the pure parsing logic in its own file with no such dependency let it be unit-tested standalone via a plain `tsx` script during Phase 1 manual verification, without booting the dev server. Combined behavior of the two files is unchanged from this contract. This also anticipates the Testing Strategy section's own note that this logic is "the highest-value first target (pure functions, no I/O)" for future automated tests.
+
 #### 4. AI-sourced create
 
 **File**: `src/lib/services/flashcards.ts`
@@ -209,6 +211,8 @@ The paste → generate → review flow, plus the entry point from the existing d
 **Intent**: Add a visible "Generate with AI" link next to the existing page heading so the new flow is discoverable from the deck.
 
 **Contract**: A `Button`-styled anchor (`asChild` wrapping `<a href="/flashcards/generate">`) rendered statically — no `client:*` directive needed since it's a plain link, not an interactive island.
+
+> **Post-implementation note** (added after impl review, finding F2): `src/components/Topbar.astro` was also updated to add a persistent "Generate" nav link (visible on every page — Dashboard, Flashcards, Sign out — not just `/flashcards`), in addition to the button above. During manual verification the deck-page button alone wasn't discoverable enough — the user navigated to `/flashcards/generate` by typing the URL manually rather than finding a link. Adding the entry point to the site-wide nav fixed this; confirmed working by the user afterward.
 
 #### 3. Generation island
 
