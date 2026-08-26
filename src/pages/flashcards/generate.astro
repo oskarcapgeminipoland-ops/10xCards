@@ -1,0 +1,17 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Topbar from "@/components/Topbar.astro";
+import FlashcardGenerator from "@/components/flashcards/FlashcardGenerator";
+---
+
+<Layout title="Generate flashcards">
+  <div class="bg-cosmic min-h-screen p-4 sm:p-6 lg:p-8">
+    <div class="mx-auto w-full max-w-3xl">
+      <Topbar />
+      <h1 class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+        Generate flashcards with AI
+      </h1>
+      <FlashcardGenerator client:load />
+    </div>
+  </div>
+</Layout>

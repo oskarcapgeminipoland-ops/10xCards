@@ -98,6 +98,36 @@ export async function createFlashcard(
   return toFlashcard(data);
 }
 
+/**
+ * Sibling to `createFlashcard` that hardcodes `source: "ai"`. Kept as a
+ * separate exported function (not a shared parameter) so the manual-create
+ * API route can never accidentally pass through an AI source.
+ */
+export async function createAiFlashcard(
+  supabase: SupabaseClient,
+  userId: string,
+  input: FlashcardInput,
+): Promise<Flashcard> {
+  const { data, error } = await supabase
+    .from("flashcards")
+    .insert({
+      user_id: userId,
+      question: input.question,
+      answer: input.answer,
+      source: "ai",
+      status: "active",
+    })
+    .select()
+    .single()
+    .overrideTypes<FlashcardRow, { merge: false }>();
+
+  if (error) {
+    throw error;
+  }
+
+  return toFlashcard(data);
+}
+
 export async function updateFlashcard(
   supabase: SupabaseClient,
   id: string,

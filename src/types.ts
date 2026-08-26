@@ -43,3 +43,14 @@ export interface FlashcardListResponse {
 export interface ApiErrorResponse {
   error: string;
 }
+
+/** Request body for `POST /api/flashcards/generate`. */
+export interface GenerateFlashcardsRequest {
+  sourceText: string;
+}
+
+/** Response body for `POST /api/flashcards/generate`. */
+export interface GenerateFlashcardsResponse {
+  proposals: FlashcardInput[];
+  droppedCount: number;
+}

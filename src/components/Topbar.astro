@@ -16,6 +16,12 @@ const { user } = Astro.locals;
           <a href="/flashcards" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
             Flashcards
           </a>
+          <a
+            href="/flashcards/generate"
+            class="text-purple-300 transition-colors hover:text-purple-100 hover:underline"
+          >
+            Generate
+          </a>
           <form method="POST" action="/api/auth/signout">
             <button type="submit" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
               Sign out
