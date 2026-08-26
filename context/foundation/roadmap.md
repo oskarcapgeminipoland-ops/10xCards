@@ -7,6 +7,7 @@ updated: 2026-08-25
 prd_version: 1
 main_goal: speed
 top_blocker: time
+updated: 2026-08-26
 ---
 
 # Roadmap: 10xCards
@@ -33,7 +34,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | --- | --- | --- | --- | --- | --- |
 | F-01 | flashcard-data-foundation | (foundation) schemat + migracja + RLS dla encji fiszki (per-user izolacja) | — | Success Criteria (Guardrails), Access Control, FR-001, FR-002 | done |
 | F-02 | ai-provider-integration | (foundation) minimalne okablowanie dostawcy AI (OpenRouter): klucz API, sekrety, cienki klient | — | FR-003, FR-004 | done |
-| S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | planning |
+| S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | in-progress |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | proposed |
 | S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | done |
 
@@ -98,7 +99,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** To jest gwiazda przewodnia: jedyny slice, który wprost testuje główne kryterium sukcesu (75% akceptacji fiszek AI). Zsekwencjonowanie go zaraz po jego dwóch fundamentach daje najszybszy realny sygnał, zgodnie z celem "szybkość wdrożenia".
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-02: Użytkownik rozpoczyna pierwszą sesję powtórek
 

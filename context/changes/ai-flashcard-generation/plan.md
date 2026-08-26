@@ -281,13 +281,13 @@ None — no schema migration. `source: 'ai'` already exists on `public.flashcard
 
 #### Automated
 
-- [ ] 1.1 Linting passes: `npm run lint`
-- [ ] 1.2 Build succeeds: `npm run build`
+- [x] 1.1 Linting passes: `npm run lint`
+- [x] 1.2 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 1.3 `generateFlashcardProposals` returns 3–5 valid `FlashcardInput` items for sample text
-- [ ] 1.4 Malformed/code-fenced AI response is handled without throwing
+- [x] 1.3 `generateFlashcardProposals` returns 3–5 valid `FlashcardInput` items for sample text
+- [x] 1.4 Malformed/code-fenced AI response is handled without throwing
 
 ### Phase 2: API Routes
 

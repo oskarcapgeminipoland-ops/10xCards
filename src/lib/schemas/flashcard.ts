@@ -19,3 +19,17 @@ export const flashcardListQuerySchema = z.object({
   offset: z.coerce.number().int().nonnegative().default(0),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
+
+/**
+ * Validates the pasted source text for `POST /api/flashcards/generate`.
+ * The 5000-char cap is enforced here (server) and mirrored client-side by
+ * `FlashcardGenerator`'s live counter — same client/server-in-lockstep
+ * pattern as `flashcardInputSchema`.
+ */
+export const generateRequestSchema = z.object({
+  sourceText: z
+    .string()
+    .trim()
+    .min(1, "Source text is required")
+    .max(5000, "Source text must be 5000 characters or fewer"),
+});
