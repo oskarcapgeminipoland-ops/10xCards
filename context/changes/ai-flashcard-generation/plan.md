@@ -281,27 +281,27 @@ None — no schema migration. `source: 'ai'` already exists on `public.flashcard
 
 #### Automated
 
-- [x] 1.1 Linting passes: `npm run lint`
-- [x] 1.2 Build succeeds: `npm run build`
+- [x] 1.1 Linting passes: `npm run lint` — 5368f93
+- [x] 1.2 Build succeeds: `npm run build` — 5368f93
 
 #### Manual
 
-- [x] 1.3 `generateFlashcardProposals` returns 3–5 valid `FlashcardInput` items for sample text
-- [x] 1.4 Malformed/code-fenced AI response is handled without throwing
+- [x] 1.3 `generateFlashcardProposals` returns 3–5 valid `FlashcardInput` items for sample text — 5368f93
+- [x] 1.4 Malformed/code-fenced AI response is handled without throwing — 5368f93
 
 ### Phase 2: API Routes
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Build succeeds: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.3 `POST /api/flashcards/generate` returns 200 with proposals when authenticated, 401 when not
-- [ ] 2.4 `POST /api/flashcards/generate` returns 400 for source text over 5000 chars
-- [ ] 2.5 `POST /api/flashcards/accept` returns 201 and persists with `source: 'ai'`
-- [ ] 2.6 A simulated 429 surfaces status 429 with the rate-limit message
+- [x] 2.3 `POST /api/flashcards/generate` returns 200 with proposals when authenticated, 401 when not
+- [x] 2.4 `POST /api/flashcards/generate` returns 400 for source text over 5000 chars
+- [x] 2.5 `POST /api/flashcards/accept` returns 201 and persists with `source: 'ai'`
+- [x] 2.6 A simulated 429 surfaces status 429 with the rate-limit message
 
 ### Phase 3: UI — Generation Page & Review Flow
 
