@@ -307,15 +307,15 @@ None — no schema migration. `source: 'ai'` already exists on `public.flashcard
 
 #### Automated
 
-- [x] 3.1 Linting passes: `npm run lint`
-- [x] 3.2 Build succeeds: `npm run build`
+- [x] 3.1 Linting passes: `npm run lint` — 629821d
+- [x] 3.2 Build succeeds: `npm run build` — 629821d
 
 #### Manual
 
-- [x] 3.3 Full US-01 walkthrough: paste → generate → accept/edit-accept/reject → accepted cards appear in `/flashcards`
-- [x] 3.4 Rejected proposals never appear in `/flashcards`
-- [x] 3.5 Edited-then-accepted card shows edited content, not original AI text
-- [x] 3.6 "Generate again" confirms before replacing a non-empty pending list; no prompt when list is empty
-- [x] 3.7 Long text wraps correctly on proposal cards, no horizontal overflow
-- [x] 3.8 Simulated generation failure shows specific error + working retry, never a blank screen
-- [x] 3.9 Responsive check at mobile/tablet/desktop widths
+- [x] 3.3 Full US-01 walkthrough: paste → generate → accept/edit-accept/reject → accepted cards appear in `/flashcards` — 629821d
+- [x] 3.4 Rejected proposals never appear in `/flashcards` — 629821d
+- [x] 3.5 Edited-then-accepted card shows edited content, not original AI text — 629821d
+- [x] 3.6 "Generate again" confirms before replacing a non-empty pending list; no prompt when list is empty — 629821d
+- [x] 3.7 Long text wraps correctly on proposal cards, no horizontal overflow — 629821d
+- [x] 3.8 Simulated generation failure shows specific error + working retry, never a blank screen — 629821d
+- [x] 3.9 Responsive check at mobile/tablet/desktop widths — 629821d
