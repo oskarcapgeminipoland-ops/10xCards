@@ -331,14 +331,14 @@ No backfill: flashcards created before this feature simply have no `flashcard_re
 
 #### Automated
 
-- [ ] 1.1 Migration applies cleanly: `npx supabase db reset`
-- [ ] 1.2 Type check / build succeeds: `npm run build`
-- [ ] 1.3 Linting passes: `npm run lint`
+- [x] 1.1 Migration applies cleanly: `npx supabase db reset`
+- [x] 1.2 Type check / build succeeds: `npm run build`
+- [x] 1.3 Linting passes: `npm run lint`
 
 #### Manual
 
-- [ ] 1.4 `flashcard_review_state` table, RLS policies, and index confirmed in Supabase Studio
-- [ ] 1.5 RLS smoke test: user A's row not selectable by user B
+- [x] 1.4 `flashcard_review_state` table, RLS policies, and index confirmed in Supabase Studio
+- [x] 1.5 RLS smoke test: user A's row not selectable by user B
 
 ### Phase 2: Pure FSRS scheduling module
 

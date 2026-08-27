@@ -54,3 +54,46 @@ export interface GenerateFlashcardsResponse {
   proposals: FlashcardInput[];
   droppedCount: number;
 }
+
+/**
+ * A user's rating of how well they recalled a flashcard, feeding the FSRS
+ * scheduler. Mirrors `ts-fsrs`'s `Rating.Again..Easy` (1-4); `Rating.Manual`
+ * (0) is an internal library value never exposed to the UI.
+ */
+export type ReviewRating = 1 | 2 | 3 | 4;
+
+/** One rating's predicted outcome, shown next to its button in the UI. */
+export interface ReviewIntervalPreview {
+  rating: ReviewRating;
+  dueAt: string;
+  intervalDays: number;
+}
+
+/** One due flashcard plus its 4 rating previews, as returned by the session queue. */
+export interface ReviewCard {
+  flashcard: Flashcard;
+  previews: ReviewIntervalPreview[];
+}
+
+/**
+ * Response body for `GET /api/flashcards/review/session`.
+ *
+ * `hasAnyFlashcards` distinguishes "zero flashcards at all" from "zero due
+ * today" so the UI never needs a second fetch to pick the right empty state.
+ */
+export interface ReviewSessionResponse {
+  items: ReviewCard[];
+  hasAnyFlashcards: boolean;
+}
+
+/** Request body for `POST /api/flashcards/review/submit`. */
+export interface SubmitReviewRequest {
+  flashcardId: string;
+  rating: ReviewRating;
+}
+
+/** Response body for `POST /api/flashcards/review/submit`. */
+export interface SubmitReviewResponse {
+  dueAt: string;
+  state: "learning" | "review" | "relearning";
+}
