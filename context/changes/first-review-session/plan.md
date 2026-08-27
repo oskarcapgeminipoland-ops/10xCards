@@ -338,7 +338,7 @@ No backfill: flashcards created before this feature simply have no `flashcard_re
 #### Manual
 
 - [x] 1.4 `flashcard_review_state` table, RLS policies, and index confirmed in Supabase Studio — e366069
-- [ ] 1.5 RLS smoke test: user A's row not selectable by user B (deferred: verify naturally via Phase 3's 3.6 cross-user check once the API exists)
+- [x] 1.5 RLS smoke test: user A's row not selectable by user B (verified via Phase 3's 3.6 cross-user check)
 
 ### Phase 2: Pure FSRS scheduling module
 
@@ -362,21 +362,21 @@ No backfill: flashcards created before this feature simply have no `flashcard_re
 
 #### Manual
 
-- [ ] 3.4 `GET /api/flashcards/review/session` returns expected queue, ordering, and 20-item cap
-- [ ] 3.5 `POST /api/flashcards/review/submit` persists correctly for each of the 4 ratings
-- [ ] 3.6 Cross-user `flashcardId` submission returns 404
+- [x] 3.4 `GET /api/flashcards/review/session` returns expected queue, ordering, and 20-item cap
+- [x] 3.5 `POST /api/flashcards/review/submit` persists correctly for each of the 4 ratings
+- [x] 3.6 Cross-user `flashcardId` submission returns 404
 
 ### Phase 4: Review session UI + navigation
 
 #### Automated
 
-- [x] 4.1 Type check / build succeeds: `npm run build`
-- [x] 4.2 Linting passes: `npm run lint`
-- [x] 4.3 Unit tests still pass: `npm run test`
+- [x] 4.1 Type check / build succeeds: `npm run build` — e767b91
+- [x] 4.2 Linting passes: `npm run lint` — e767b91
+- [x] 4.3 Unit tests still pass: `npm run test` — e767b91
 
 #### Manual
 
-- [ ] 4.4 Full session walkthrough via nav entry point works end-to-end
-- [ ] 4.5 Completion screen shows correct tally and working return link
-- [ ] 4.6 Both empty states verified independently
-- [ ] 4.7 Submit failure blocks + shows retryable error without silent advance
+- [x] 4.4 Full session walkthrough via nav entry point works end-to-end
+- [x] 4.5 Completion screen shows correct tally and working return link
+- [x] 4.6 Both empty states verified independently
+- [x] 4.7 Submit failure blocks + shows retryable error without silent advance
