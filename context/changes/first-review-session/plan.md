@@ -356,9 +356,9 @@ No backfill: flashcards created before this feature simply have no `flashcard_re
 
 #### Automated
 
-- [x] 3.1 Type check / build succeeds: `npm run build`
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Unit tests still pass: `npm run test`
+- [x] 3.1 Type check / build succeeds: `npm run build` — a2ae748
+- [x] 3.2 Linting passes: `npm run lint` — a2ae748
+- [x] 3.3 Unit tests still pass: `npm run test` — a2ae748
 
 #### Manual
 
@@ -370,9 +370,9 @@ No backfill: flashcards created before this feature simply have no `flashcard_re
 
 #### Automated
 
-- [ ] 4.1 Type check / build succeeds: `npm run build`
-- [ ] 4.2 Linting passes: `npm run lint`
-- [ ] 4.3 Unit tests still pass: `npm run test`
+- [x] 4.1 Type check / build succeeds: `npm run build`
+- [x] 4.2 Linting passes: `npm run lint`
+- [x] 4.3 Unit tests still pass: `npm run test`
 
 #### Manual
 
