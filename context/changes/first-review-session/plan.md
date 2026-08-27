@@ -344,21 +344,21 @@ No backfill: flashcards created before this feature simply have no `flashcard_re
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm run test`
-- [x] 2.2 Type check / build succeeds: `npm run build`
-- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.1 Unit tests pass: `npm run test` — dab2bbb
+- [x] 2.2 Type check / build succeeds: `npm run build` — dab2bbb
+- [x] 2.3 Linting passes: `npm run lint` — dab2bbb
 
 #### Manual
 
-- [ ] 2.4 Spot-check a realistic multi-review sequence for sane intervals
+- [x] 2.4 Spot-check a realistic multi-review sequence for sane intervals — dab2bbb
 
 ### Phase 3: Review service layer + API routes
 
 #### Automated
 
-- [ ] 3.1 Type check / build succeeds: `npm run build`
-- [ ] 3.2 Linting passes: `npm run lint`
-- [ ] 3.3 Unit tests still pass: `npm run test`
+- [x] 3.1 Type check / build succeeds: `npm run build`
+- [x] 3.2 Linting passes: `npm run lint`
+- [x] 3.3 Unit tests still pass: `npm run test`
 
 #### Manual
 

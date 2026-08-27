@@ -25,7 +25,7 @@
  * `stability`. `Relearning` is reachable in principle (the DB CHECK still
  * allows it) but unreachable in practice under this config.
  */
-import { createEmptyCard, fsrs, Rating, type Card, type Grade } from "ts-fsrs";
+import { createEmptyCard, fsrs, Rating, State, type Card, type Grade } from "ts-fsrs";
 import type { ReviewIntervalPreview, ReviewRating } from "@/types";
 
 const scheduler = fsrs({ request_retention: 0.9, enable_short_term: false });
@@ -100,4 +100,23 @@ export function previewAll(card: Card, now: Date): ReviewIntervalPreview[] {
 /** Applies `rating` to `card`, returning the new scheduled `Card`. */
 export function applyRating(card: Card, now: Date, rating: ReviewRating): Card {
   return scheduler.next(card, now, rating).card;
+}
+
+/**
+ * Maps a post-rating `Card.state` to the label `SubmitReviewResponse` sends
+ * back. `State.New` is never a valid input here (applying any rating always
+ * moves a card out of `New`); it falls through to `"review"` defensively
+ * rather than throwing. Note that with `enable_short_term: false` above,
+ * `"relearning"` is reachable in principle but never actually produced in
+ * practice (see this module's top comment).
+ */
+export function stateLabel(state: Card["state"]): "learning" | "review" | "relearning" {
+  switch (state) {
+    case State.Learning:
+      return "learning";
+    case State.Relearning:
+      return "relearning";
+    default:
+      return "review";
+  }
 }
