@@ -1,7 +1,7 @@
 ---
 change_id: first-review-session
 title: First review session powered by ts-fsrs spaced repetition
-status: planned
+status: plan_reviewed
 created: 2026-08-27
 updated: 2026-08-27
 archived_at: null
