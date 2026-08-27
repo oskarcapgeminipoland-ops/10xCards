@@ -4,18 +4,18 @@
 - **Plan**: context/changes/first-review-session/plan.md
 - **Mode**: Deep
 - **Date**: 2026-08-27
-- **Verdict**: REVISE
-- **Findings**: 1 critical, 2 warnings, 0 observations
+- **Verdict**: REVISE (at review time) → **SOUND** (after triage — all 3 findings fixed in `plan.md`, see Decision fields below)
+- **Findings**: 1 critical, 2 warnings, 0 observations — all FIXED
 
 ## Verdicts
 
-| Dimension | Verdict |
-|-----------|---------|
-| End-State Alignment | PASS |
-| Lean Execution | PASS |
-| Architectural Fitness | PASS |
-| Blind Spots | FAIL |
-| Plan Completeness | WARNING |
+| Dimension | Verdict (at review time) | Verdict (after triage) |
+|-----------|---------------------------|-------------------------|
+| End-State Alignment | PASS | PASS |
+| Lean Execution | PASS | PASS |
+| Architectural Fitness | PASS | PASS |
+| Blind Spots | FAIL | PASS |
+| Plan Completeness | WARNING | PASS |
 
 ## Grounding
 
@@ -42,7 +42,7 @@
   - Tradeoff: New trigger function to write and test (must set an explicit `search_path` per the existing lessons.md rule), plus mapping a raised Postgres exception to a clean API 404 is extra surface across both Phase 1 and Phase 3.
   - Confidence: MEDIUM — sound technique, but no precedent in this codebase to lean on; new ground.
   - Blind spot: Exact error-shape mapping from trigger exception → API 404 isn't designed yet.
-- **Decision**: PENDING
+- **Decision**: FIXED (via Fix A) — `submitReview` contract now performs the RLS-scoped ownership `select` before touching `flashcard_review_state`; `submit.ts` route contract and Critical Implementation Details updated to match.
 
 ### F2 — Queue ordering between never-reviewed and overdue cards is unspecified
 
@@ -61,7 +61,7 @@
   - Tradeoff: A user who lets overdue reviews pile up and then generates a large new batch can see their cap entirely consumed by new cards, starving the overdue backlog.
   - Confidence: MEDIUM.
   - Blind spot: Interacts badly with the 20/day cap under heavy generation usage — not stress-tested either way.
-- **Decision**: PENDING
+- **Decision**: FIXED (via Fix A) — `getReviewSession` contract now specifies `ORDER BY due ASC NULLS LAST` (overdue-reviewed cards prioritized over never-reviewed).
 
 ### F3 — Empty-state signal left undecided across two phases
 
@@ -71,4 +71,4 @@
 - **Location**: Phase 1 §3 (plan.md:102) vs. Phase 4 §1 (plan.md:247)
 - **Detail**: Phase 1 fixes `ReviewSessionResponse { items: ReviewCard[] }` with no field to distinguish "zero flashcards" from "zero due." Phase 4's contract then says to add a `hasAnyFlashcards` flag "if simpler," or do a second fetch instead — an unresolved decision left for the implementer, contradicting a type Phase 1 already declared fixed. (The brief's own "Open Risks" section already flags this as unsettled, confirming it wasn't accidentally dropped — just never closed out.)
 - **Fix**: Decide now — add `hasAnyFlashcards: boolean` to `ReviewSessionResponse` in Phase 1's contract (populated by a cheap existence check in `getReviewSession`), and update Phase 4's contract to reference it directly instead of "pick whichever."
-- **Decision**: PENDING
+- **Decision**: FIXED — `ReviewSessionResponse` now includes `hasAnyFlashcards`; `getReviewSession` populates it; Phase 4's UI contract now derives both empty states directly from the single session response, no second fetch.

@@ -46,6 +46,7 @@ Four phases, each independently shippable: (1) data foundation — migration + R
 - **Server-authoritative recompute at submit time.** `GET /api/flashcards/review/session` returns rating previews for UI display only. `POST /api/flashcards/review/submit` must always re-fetch the current state row and recompute via `scheduler.next(...)` itself — never trust a client-echoed preview or `card` payload. This is a trust boundary, not just a convenience: the request body only ever carries `flashcardId` + `rating`.
 - **Lazy state means a `LEFT JOIN`, not an `INNER JOIN`, for the due-query.** A flashcard with no `flashcard_review_state` row is eligible immediately (it has never been reviewed). The session query must select `flashcards LEFT JOIN flashcard_review_state` and treat `state row is null OR due <= now()` as "due" — an `INNER JOIN` would silently exclude every never-reviewed flashcard from every session forever.
 - **The FSRS module must stay import-clean.** `src/lib/fsrs/scheduler.ts` must not import `astro:env/server` or the Supabase client (directly or transitively) — this is what makes it unit-testable under plain `vitest` without spinning up Astro's runtime, mirroring the `flashcard-generation-parse.ts` precedent from S-01.
+- **`flashcard_review_state` RLS does not validate FK ownership.** `flashcards.user_id` RLS protects rows already in that table; it says nothing about what a *new* `flashcard_review_state` row's `flashcard_id` points to. `submitReview` must explicitly verify `flashcardId` resolves to a `flashcards` row visible to the caller (an RLS-scoped `select`) before ever touching `flashcard_review_state` — otherwise a caller can create a review-state row against another user's flashcard.
 
 ## Phase 1: Data foundation
 
@@ -99,7 +100,7 @@ Creates the `flashcard_review_state` table with RLS, adds `ts-fsrs` as a depende
 - `ReviewRating = 1 | 2 | 3 | 4` (mirrors `ts-fsrs`'s `Rating.Again..Easy`; `Manual = 0` is never exposed to the UI)
 - `ReviewIntervalPreview { rating: ReviewRating; dueAt: string; intervalDays: number }`
 - `ReviewCard { flashcard: Flashcard; previews: ReviewIntervalPreview[] }`
-- `ReviewSessionResponse { items: ReviewCard[] }`
+- `ReviewSessionResponse { items: ReviewCard[]; hasAnyFlashcards: boolean }` — `hasAnyFlashcards` distinguishes "zero flashcards at all" from "zero due today" so the UI never needs a second fetch to pick the right empty state
 - `SubmitReviewRequest { flashcardId: string; rating: ReviewRating }`
 - `SubmitReviewResponse { dueAt: string; state: "learning" | "review" | "relearning" }`
 
@@ -195,8 +196,8 @@ Adds the due-card queue query and rating-submission persistence, exposed via two
 **Contract**:
 
 - `const DAILY_REVIEW_LIMIT = 20`
-- `getReviewSession(supabase, userId): Promise<ReviewCard[]>` — selects `flashcards` for `userId` `LEFT JOIN flashcard_review_state`, keeping rows where the state row is absent or `due <= now()`, ordered so nulls (never-reviewed) and the most-overdue sort first, capped at `DAILY_REVIEW_LIMIT`; for each row, builds a `Card` via `toCard` and attaches `previewAll(card, now)`
-- `submitReview(supabase, userId, flashcardId, rating): Promise<SubmitReviewResponse>` — fetches the existing `flashcard_review_state` row for `flashcardId` (if any), builds the current `Card` via `toCard`, calls `applyRating`, upserts the result (`on conflict (flashcard_id)`) with `user_id` set from the authenticated caller (never from the request body), returns the new `dueAt`/`state`
+- `getReviewSession(supabase, userId): Promise<ReviewSessionResponse>` — selects `flashcards` for `userId` `LEFT JOIN flashcard_review_state`, keeping rows where the state row is absent or `due <= now()`, ordered `due ASC NULLS LAST` (overdue-reviewed cards first, never-reviewed cards fill any remaining slots under the cap) — protects the retention of material already at risk of being forgotten before introducing new material, standard SRS practice — capped at `DAILY_REVIEW_LIMIT`; for each row, builds a `Card` via `toCard` and attaches `previewAll(card, now)`. Also runs a cheap `select id from flashcards where user_id = userId limit 1` to populate `hasAnyFlashcards` (distinct from whether `items` is empty)
+- `submitReview(supabase, userId, flashcardId, rating): Promise<SubmitReviewResponse>` — **first** does a RLS-scoped `select id from flashcards where id = flashcardId`; zero rows means `flashcardId` doesn't exist or isn't owned by `userId` (indistinguishable, matching the `[id].ts` not-found-vs-not-owned convention), and the caller throws `ApiError("Not found", 404)` before touching `flashcard_review_state` at all. Only then: fetches the existing `flashcard_review_state` row for `flashcardId` (if any), builds the current `Card` via `toCard`, calls `applyRating`, upserts the result (`on conflict (flashcard_id)`) with `user_id` set from the authenticated caller (never from the request body), returns the new `dueAt`/`state`. This ownership check is load-bearing, not incidental: `flashcard_review_state`'s RLS only validates the *new row's own* `user_id` on insert, never what `flashcard_id` points to — without this pre-check a caller could create a review-state row against another user's flashcard (see Critical Implementation Details).
 
 #### 2. Session route
 
@@ -204,7 +205,7 @@ Adds the due-card queue query and rating-submission persistence, exposed via two
 
 **Intent**: `GET` handler exposing `getReviewSession`.
 
-**Contract**: Same handler shape as every existing `/api/flashcards/*` route — `withApiErrorHandling`, Supabase-client-missing → `500`, `context.locals.user` missing → `401`, `Response.json({ items } satisfies ReviewSessionResponse)`.
+**Contract**: Same handler shape as every existing `/api/flashcards/*` route — `withApiErrorHandling`, Supabase-client-missing → `500`, `context.locals.user` missing → `401`, `Response.json(result satisfies ReviewSessionResponse)` where `result` is `getReviewSession`'s return value directly (already shaped as `{ items, hasAnyFlashcards }`).
 
 #### 3. Submit route
 
@@ -212,7 +213,7 @@ Adds the due-card queue query and rating-submission persistence, exposed via two
 
 **Intent**: `POST` handler exposing `submitReview`.
 
-**Contract**: Same handler shape, validating the body against `submitReviewSchema` (`400` on failure via `jsonError`), calling `submitReview`, returning `Response.json(result satisfies SubmitReviewResponse)`. A `flashcardId` that doesn't resolve to a row owned by the caller surfaces as `404` (RLS returns zero rows on the underlying `flashcards` lookup), matching the existing not-found-vs-not-owned convention in `[id].ts`.
+**Contract**: Same handler shape, validating the body against `submitReviewSchema` (`400` on failure via `jsonError`), calling `submitReview`, returning `Response.json(result satisfies SubmitReviewResponse)`. A `flashcardId` that doesn't resolve to a row owned by the caller surfaces as `404` — via `submitReview`'s own explicit ownership check (see the Review service contract above), not RLS alone — matching the existing not-found-vs-not-owned convention in `[id].ts`.
 
 ### Success Criteria:
 
@@ -244,7 +245,7 @@ The user-facing review flow: a dedicated page, a React island driving the sessio
 
 **Intent**: Drives the full session — fetch queue, show one card at a time, reveal answer, submit rating, advance, handle both empty states and the completion screen — mirroring `FlashcardGenerator.tsx`'s `Phase` state-machine and local `apiRequest<T>()` fetch-helper conventions (no shared data-fetching library exists in this codebase).
 
-**Contract**: `Phase = "loading" | "empty-no-cards" | "empty-none-due" | "active" | "submitting" | "complete" | "error"`; per-card `revealed: boolean` local state; a running `Record<ReviewRating, number>` tally incremented on each successful submit, shown on the `"complete"` screen. While `"submitting"`, rating buttons are disabled and a failed submit shows a retry-able toast without advancing (per the confirmed block-and-retry decision — no optimistic advance). Rating buttons show each `ReviewIntervalPreview.intervalDays` from the current card's `previews`. `"empty-no-cards"` vs `"empty-none-due"` are distinguished by whether the fetched queue is empty because the user has zero flashcards at all (checked via a lightweight existing-flashcards signal, e.g. an empty `GET /api/flashcards?limit=1` check, or a `hasAnyFlashcards` flag included in `ReviewSessionResponse` if simpler) vs. simply none currently due — pick whichever keeps `ReviewSessionResponse` self-contained rather than requiring a second fetch.
+**Contract**: `Phase = "loading" | "empty-no-cards" | "empty-none-due" | "active" | "submitting" | "complete" | "error"`; per-card `revealed: boolean` local state; a running `Record<ReviewRating, number>` tally incremented on each successful submit, shown on the `"complete"` screen. While `"submitting"`, rating buttons are disabled and a failed submit shows a retry-able toast without advancing (per the confirmed block-and-retry decision — no optimistic advance). Rating buttons show each `ReviewIntervalPreview.intervalDays` from the current card's `previews`. `"empty-no-cards"` vs `"empty-none-due"` are distinguished directly from the single `GET .../review/session` response: `items.length === 0 && !hasAnyFlashcards` → `"empty-no-cards"`, `items.length === 0 && hasAnyFlashcards` → `"empty-none-due"` — no second fetch needed.
 
 #### 2. Review page
 

@@ -30,6 +30,8 @@ A user with flashcards can open `/flashcards/review`, get shown one due card at 
 | Submit failure handling | Block + retry, no optimistic advance | Zero risk of losing/misrepresenting a rating. | Plan |
 | Automated testing | Introduce `vitest`, scoped to pure FSRS module only | Locks in scheduling correctness; mirrors S-01's I/O-free-module split precedent. | Plan |
 | Scope: schedule/browse view | Out of scope | Stays inside FR-009; a future slice if needed. | Plan |
+| Session queue priority | Overdue-reviewed cards before never-reviewed | Protects retention of at-risk material first, standard SRS practice; prevents new-card bursts from starving the overdue backlog. | Plan review |
+| Cross-user flashcardId | Explicit ownership check in `submitReview` before touching review state | RLS alone doesn't validate what a new row's FK points to; without this, a caller could create review state against another user's flashcard. | Plan review |
 
 ## Scope
 
@@ -56,7 +58,7 @@ Data flows one direction, server-authoritative: `flashcards` LEFT JOIN `flashcar
 ## Open Risks & Assumptions
 
 - `ts-fsrs` v5.4.1's exact API (confirmed via its README/registry during planning) is assumed stable through implementation; if it changes on install, Phase 2's wrapper module is the single point of adjustment.
-- The empty-state distinction ("no flashcards" vs. "none due") needs a cheap signal in `ReviewSessionResponse` or a second lightweight fetch — left as an implementer choice in Phase 4's contract, not pre-decided, since either is a one-line difference.
+- `submitReview`'s ownership pre-check (added post-plan-review, see below) is app-layer only — a future code path writing to `flashcard_review_state` directly, bypassing this service function, would need the same check re-applied.
 
 ## Success Criteria (Summary)
 
