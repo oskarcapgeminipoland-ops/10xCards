@@ -497,31 +497,31 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [x] 1.1 Lint passes: `npm run lint`
-- [x] 1.2 Production build passes: `npm run build`
-- [x] 1.3 FSRS tests still pass: `npm run test`
-- [x] 1.4 No remaining English literals in the translation surface (grep check, exceptions documented)
+- [x] 1.1 Lint passes: `npm run lint` — 3076c98
+- [x] 1.2 Production build passes: `npm run build` — 3076c98
+- [x] 1.3 FSRS tests still pass: `npm run test` — 3076c98
+- [x] 1.4 No remaining English literals in the translation surface (grep check, exceptions documented) — 3076c98
 
 #### Manual
 
-- [ ] 1.5 Every screen renders Polish copy with no truncation or layout break
-- [ ] 1.6 `<html lang="pl">` in source; browser tab shows `10xCards`
-- [ ] 1.7 API validation errors return Polish messages
+- [x] 1.5 Every screen renders Polish copy with no truncation or layout break — 3076c98
+- [x] 1.6 `<html lang="pl">` in source; browser tab shows `10xCards` — 3076c98
+- [x] 1.7 API validation errors return Polish messages — 3076c98
 
 ### Phase 2: Deferred form validation
 
 #### Automated
 
-- [ ] 2.1 Lint passes: `npm run lint`
-- [ ] 2.2 Build passes: `npm run build`
+- [x] 2.1 Lint passes: `npm run lint`
+- [x] 2.2 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 2.3 "Nowa fiszka" dialog opens with no error text and no red border
-- [ ] 2.4 `/flashcards/generate` opens with no error and no red textarea
-- [ ] 2.5 Blurring an empty required field shows its error; typing a valid value clears it
-- [ ] 2.6 Submit / generate button is disabled while invalid, enables once all fields are valid
-- [ ] 2.7 Editing a pre-filled flashcard shows no error until a field is cleared
+- [x] 2.3 "Nowa fiszka" dialog opens with no error text and no red border
+- [x] 2.4 `/flashcards/generate` opens with no error and no red textarea
+- [x] 2.5 Blurring an empty required field shows its error; typing a valid value clears it
+- [x] 2.6 Submit / generate button is disabled while invalid, enables once all fields are valid
+- [x] 2.7 Editing a pre-filled flashcard shows no error until a field is cleared
 
 ### Phase 3: Pagination — data layer
 

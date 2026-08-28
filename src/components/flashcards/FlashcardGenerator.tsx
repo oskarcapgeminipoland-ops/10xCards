@@ -79,6 +79,9 @@ export default function FlashcardGenerator() {
   const [acceptingIds, setAcceptingIds] = useState<Set<string>>(new Set());
   const [confirmRegenerateOpen, setConfirmRegenerateOpen] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // Hide the source-text validation error until the field is blurred; the
+  // live `parsedSource` result still gates the generate button.
+  const [sourceTouched, setSourceTouched] = useState(false);
 
   const parsedSource = useMemo(() => generateRequestSchema.safeParse({ sourceText }), [sourceText]);
   const sourceError = parsedSource.success ? undefined : parsedSource.error.issues[0]?.message;
@@ -192,15 +195,20 @@ export default function FlashcardGenerator() {
               onChange={(event) => {
                 setSourceText(event.target.value);
               }}
+              onBlur={() => {
+                setSourceTouched(true);
+              }}
               placeholder={t.generate.sourcePlaceholder}
               rows={8}
               disabled={phase === "generating"}
               className={cn(
                 "border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:border-purple-400 focus-visible:ring-purple-400/40",
-                sourceError && "border-red-400/60 focus-visible:border-red-400 focus-visible:ring-red-400/40",
+                sourceTouched &&
+                  sourceError &&
+                  "border-red-400/60 focus-visible:border-red-400 focus-visible:ring-red-400/40",
               )}
             />
-            {sourceError && <p className="text-xs text-red-300">{sourceError}</p>}
+            {sourceTouched && sourceError && <p className="text-xs text-red-300">{sourceError}</p>}
           </div>
 
           <Button

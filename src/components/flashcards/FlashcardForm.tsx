@@ -31,6 +31,10 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
   const [question, setQuestion] = useState(initialValue?.question ?? "");
   const [answer, setAnswer] = useState(initialValue?.answer ?? "");
   const [submitting, setSubmitting] = useState(false);
+  // Validation errors stay hidden until the user blurs a field. The live
+  // `parsed` result below still drives the submit button, so a blocked
+  // submit needs no separate "reveal all errors" path.
+  const [touched, setTouched] = useState({ question: false, answer: false });
 
   const parsed = useMemo(() => flashcardInputSchema.safeParse({ question, answer }), [question, answer]);
   const questionError = parsed.success
@@ -74,11 +78,14 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           onChange={(event) => {
             setQuestion(event.target.value);
           }}
+          onBlur={() => {
+            setTouched((prev) => ({ ...prev, question: true }));
+          }}
           placeholder={t.form.questionPlaceholder}
           rows={3}
-          className={cn(fieldClass, questionError && fieldErrorClass)}
+          className={cn(fieldClass, touched.question && questionError && fieldErrorClass)}
         />
-        {questionError && <p className="text-xs text-red-300">{questionError}</p>}
+        {touched.question && questionError && <p className="text-xs text-red-300">{questionError}</p>}
       </div>
 
       <div className="space-y-1.5">
@@ -96,11 +103,14 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           onChange={(event) => {
             setAnswer(event.target.value);
           }}
+          onBlur={() => {
+            setTouched((prev) => ({ ...prev, answer: true }));
+          }}
           placeholder={t.form.answerPlaceholder}
           rows={4}
-          className={cn(fieldClass, answerError && fieldErrorClass)}
+          className={cn(fieldClass, touched.answer && answerError && fieldErrorClass)}
         />
-        {answerError && <p className="text-xs text-red-300">{answerError}</p>}
+        {touched.answer && answerError && <p className="text-xs text-red-300">{answerError}</p>}
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
