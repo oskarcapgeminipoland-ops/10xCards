@@ -36,6 +36,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | done |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | done |
 | S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | done |
+| S-04 | ux-improvements | korzysta z polskojęzycznego, dopracowanego UI: bez przedwczesnych błędów walidacji, paginacja listy fiszek (10/20/50, domyślnie 10), „Ustawienia" zamiast „dashboard", strona główna z brandingiem 10xCards i osobnym widokiem zalogowany/niezalogowany | F-01 | US-01, FR-005, FR-006 | planned |
 
 ## Streams
 
@@ -46,6 +47,7 @@ Pomoc nawigacyjna — grupuje elementy dzielące ten sam łańcuch zależności.
 | A | Rdzeń pętli AI (generuj → zapisz → powtórz) | `F-01` → `S-01` → `S-02` | Cel = szybkość: dowozi gwiazdę przewodnią i pierwszą powtórkę jednym ciągiem — najkrótsza droga do sygnału o głównym kryterium sukcesu. |
 | B | Okablowanie dostawcy AI | `F-02` → `S-01` | Dołącza do Stream A przy `S-01`; F-02 nie zależy od F-01, można budować równolegle. |
 | C | Ręczne zarządzanie fiszkami | `S-03` | Zależy tylko od `F-01` (patrz Stream A); niezależny od `S-01`/`S-02` — dobry kandydat do równoległej pracy drugiego agenta. |
+| D | Dopracowanie UX (polski interfejs, walidacja, strona główna) | `S-04` | Zależy tylko od `F-01`; czysta warstwa prezentacji na `S-01`–`S-03`, niezależna od pozostałych łańcuchów. |
 
 ## Baseline
 
@@ -126,6 +128,18 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Risk:** Ręczne zarządzanie to wymagany "siatka bezpieczeństwa" (guardrail: manualna ścieżka działa niezależnie od dostępności AI), ale nie testuje głównej hipotezy produktu — stąd sekwencjonowany po parze walidacyjnej S-01/S-02, choć może być budowany równolegle przez drugiego agenta.
 - **Status:** done
 
+### S-04: Użytkownik korzysta z dopracowanego, polskojęzycznego interfejsu
+
+- **Outcome:** widzi w pełni polskojęzyczny interfejs (labele, komunikaty, nawigacja); formularz ręcznego dodawania fiszki i pole tekstu źródłowego do generowania AI nie pokazują błędu walidacji przed pierwszą interakcją z polem; lista fiszek jest paginowana (domyślnie 10 na stronę, z możliwością zmiany na 20 lub 50); pozycja nawigacji „dashboard" nazywa się „Ustawienia"; strona główna prezentuje design i treści 10xCards zamiast szablonu startera, z jaśniejszym tłem i osobnym widokiem dla użytkownika zalogowanego i niezalogowanego.
+- **Change ID:** ux-improvements
+- **PRD refs:** US-01, FR-005, FR-006
+- **Prerequisites:** F-01
+- **Parallel with:** —
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Czysta warstwa prezentacji na dostarczonych slice'ach S-01–S-03 — nie zmienia backendu ani modelu danych, a odłożenie jej nie blokuje kolejnych funkcji. Ale angielski UI i przedwczesne błędy walidacji psują pierwsze wrażenie dokładnie w tych przepływach, które testują główną hipotezę produktu.
+- **Status:** planned
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID | Suggested issue title | Ready for `/10x-plan` | Notes |
@@ -135,6 +149,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 | S-01 | ai-flashcard-generation | Generowanie i triage fiszek przez AI z wklejonego tekstu | no | Zależy od F-01, F-02 — planuj po nich |
 | S-02 | first-review-session | Pierwsza sesja powtórek (SRS) | no | Zależy od S-01, F-01 — planuj po nich; wybór biblioteki SRS do rozstrzygnięcia w trakcie planowania |
 | S-03 | manual-flashcard-management | Ręczne tworzenie / edycja / usuwanie fiszek | no | Zależy od F-01 — planuj po nim |
+| S-04 | ux-improvements | UX polish: polski interfejs, walidacja formularzy, paginacja listy fiszek, redesign strony głównej | yes | Zależy tylko od F-01 (done) — `/10x-plan ux-improvements` |
 
 ## Open Roadmap Questions
 
