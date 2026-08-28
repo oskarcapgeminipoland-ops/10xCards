@@ -580,13 +580,13 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [x] 6.1 Lint passes: `npm run lint`
-- [x] 6.2 Build passes: `npm run build`
-- [x] 6.3 FSRS tests still pass: `npm run test`
+- [x] 6.1 Lint passes: `npm run lint` — 6a18ffd
+- [x] 6.2 Build passes: `npm run build` — 6a18ffd
+- [x] 6.3 FSRS tests still pass: `npm run test` — 6a18ffd
 
 #### Manual
 
-- [x] 6.4 Every page shows the lighter background with no illegible / washed-out text
-- [x] 6.5 Dialogs are visually distinct from the page behind them
-- [x] 6.6 Body-text contrast ≥ 4.5:1 on 2–3 representative screens
-- [x] 6.7 No regression to focus rings / hover states
+- [x] 6.4 Every page shows the lighter background with no illegible / washed-out text — 6a18ffd
+- [x] 6.5 Dialogs are visually distinct from the page behind them — 6a18ffd
+- [x] 6.6 Body-text contrast ≥ 4.5:1 on 2–3 representative screens — 6a18ffd
+- [x] 6.7 No regression to focus rings / hover states — 6a18ffd
