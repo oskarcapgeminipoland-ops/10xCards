@@ -51,6 +51,10 @@ export const t = {
     signUp: "Zarejestruj się",
   },
 
+  footer: {
+    line: (year: number) => `© ${year} 10xCards · Fiszki wspierane przez AI i powtórki metodą SRS`,
+  },
+
   landing: {
     heroTitle: "Ucz się szybciej dzięki fiszkom tworzonym przez AI",
     heroPitch:
@@ -179,6 +183,11 @@ export const t = {
     acceptErrorToast: "Nie udało się zapisać fiszki",
     noneSurvived:
       "Żadna fiszka z tego tekstu nie przeszła walidacji. Spróbuj wygenerować ponownie lub wklej inny tekst.",
+    reviewComplete: (accepted: number) =>
+      accepted === 0
+        ? "Wszystkie propozycje zostały odrzucone. Wygeneruj ponownie lub wklej inny tekst."
+        : `Gotowe — dodano ${accepted} ${plural(accepted, ["fiszkę", "fiszki", "fiszek"])} do zestawu.`,
+    goToFlashcards: "Przejdź do fiszek",
     editAriaLabel: "Edytuj propozycję",
     rejectAriaLabel: "Odrzuć propozycję",
     acceptAriaLabel: "Zaakceptuj propozycję",

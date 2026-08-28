@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import Banner from "@/components/Banner.astro";
+import Footer from "@/components/Footer.astro";
 import { missingConfigs } from "@/lib/config-status";
 import { Toaster } from "@/components/ui/sonner";
 import { t } from "@/lib/i18n";
@@ -39,6 +40,7 @@ const { title = t.meta.defaultTitle } = Astro.props;
       ))
     }
     <slot />
+    <Footer />
     <Toaster client:load theme="dark" richColors closeButton />
   </body>
 </html>

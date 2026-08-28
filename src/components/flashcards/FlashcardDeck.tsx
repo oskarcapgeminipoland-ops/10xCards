@@ -16,6 +16,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FlashcardForm } from "@/components/flashcards/FlashcardForm";
 import { DeleteFlashcardDialog } from "@/components/flashcards/DeleteFlashcardDialog";
+import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 import type { ApiErrorResponse, Flashcard, FlashcardInput, FlashcardListResponse } from "@/types";
 
@@ -393,10 +394,11 @@ export default function FlashcardDeck() {
           <PaginationContent>
             <PaginationItem>
               <PaginationLink
+                size="default"
                 href={pageHref(page - 1, size)}
                 aria-label={t.deck.prevPage}
                 aria-disabled={page === 1}
-                className={page === 1 ? paginationDisabledClass : paginationLinkClass}
+                className={cn("mr-2", page === 1 ? paginationDisabledClass : paginationLinkClass)}
                 onClick={(event) => {
                   event.preventDefault();
                   goToPage(page - 1);
@@ -431,10 +433,11 @@ export default function FlashcardDeck() {
 
             <PaginationItem>
               <PaginationLink
+                size="default"
                 href={pageHref(page + 1, size)}
                 aria-label={t.deck.nextPage}
                 aria-disabled={page === totalPages}
-                className={page === totalPages ? paginationDisabledClass : paginationLinkClass}
+                className={cn("ml-2", page === totalPages ? paginationDisabledClass : paginationLinkClass)}
                 onClick={(event) => {
                   event.preventDefault();
                   goToPage(page + 1);

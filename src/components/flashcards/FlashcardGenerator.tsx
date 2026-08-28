@@ -79,6 +79,11 @@ export default function FlashcardGenerator() {
   const [acceptingIds, setAcceptingIds] = useState<Set<string>>(new Set());
   const [confirmRegenerateOpen, setConfirmRegenerateOpen] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // How many proposals the current batch produced, and how many the user
+  // has accepted from it — so the "review done" state can tell "generation
+  // yielded nothing" apart from "you've worked through them all".
+  const [batchSize, setBatchSize] = useState(0);
+  const [acceptedCount, setAcceptedCount] = useState(0);
   // Hide the source-text validation error until the field is blurred; the
   // live `parsedSource` result still gates the generate button.
   const [sourceTouched, setSourceTouched] = useState(false);
@@ -107,6 +112,8 @@ export default function FlashcardGenerator() {
     setPhase("generating");
     setError(null);
     setElapsedSeconds(0);
+    setAcceptedCount(0);
+    setBatchSize(0);
 
     try {
       const data = await apiRequest<GenerateFlashcardsResponse>("/api/flashcards/generate", {
@@ -116,6 +123,7 @@ export default function FlashcardGenerator() {
       });
       const withIds = data.proposals.map((proposal) => ({ ...proposal, clientId: crypto.randomUUID() }));
       setProposals(withIds);
+      setBatchSize(withIds.length);
       setPhase("reviewing");
       if (data.droppedCount > 0) {
         toast.info(t.generate.generatedWithDroppedToast(withIds.length, data.droppedCount));
@@ -154,6 +162,7 @@ export default function FlashcardGenerator() {
         body: JSON.stringify({ question: proposal.question, answer: proposal.answer }),
       });
       setProposals((prev) => prev.filter((item) => item.clientId !== proposal.clientId));
+      setAcceptedCount((n) => n + 1);
       toast.success(t.generate.acceptedToast);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t.generate.acceptErrorToast);
@@ -258,7 +267,18 @@ export default function FlashcardGenerator() {
         <div className="mt-6 space-y-3">
           {proposals.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/8 p-8 text-center">
-              <p className="text-blue-100/70">{t.generate.noneSurvived}</p>
+              {batchSize === 0 ? (
+                <p className="text-blue-100/70">{t.generate.noneSurvived}</p>
+              ) : (
+                <>
+                  <p className="mb-4 text-blue-100/70">{t.generate.reviewComplete(acceptedCount)}</p>
+                  {acceptedCount > 0 && (
+                    <Button asChild className="bg-purple-600 text-white hover:bg-purple-500">
+                      <a href="/flashcards">{t.generate.goToFlashcards}</a>
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
