@@ -512,31 +512,31 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [x] 2.1 Lint passes: `npm run lint`
-- [x] 2.2 Build passes: `npm run build`
+- [x] 2.1 Lint passes: `npm run lint` — 8e308b8
+- [x] 2.2 Build passes: `npm run build` — 8e308b8
 
 #### Manual
 
-- [x] 2.3 "Nowa fiszka" dialog opens with no error text and no red border
-- [x] 2.4 `/flashcards/generate` opens with no error and no red textarea
-- [x] 2.5 Blurring an empty required field shows its error; typing a valid value clears it
-- [x] 2.6 Submit / generate button is disabled while invalid, enables once all fields are valid
-- [x] 2.7 Editing a pre-filled flashcard shows no error until a field is cleared
+- [x] 2.3 "Nowa fiszka" dialog opens with no error text and no red border — 8e308b8
+- [x] 2.4 `/flashcards/generate` opens with no error and no red textarea — 8e308b8
+- [x] 2.5 Blurring an empty required field shows its error; typing a valid value clears it — 8e308b8
+- [x] 2.6 Submit / generate button is disabled while invalid, enables once all fields are valid — 8e308b8
+- [x] 2.7 Editing a pre-filled flashcard shows no error until a field is cleared — 8e308b8
 
 ### Phase 3: Pagination — data layer
 
 #### Automated
 
-- [ ] 3.1 Lint passes: `npm run lint`
-- [ ] 3.2 Build passes: `npm run build`
-- [ ] 3.3 FSRS tests still pass: `npm run test`
+- [x] 3.1 Lint passes: `npm run lint`
+- [x] 3.2 Build passes: `npm run build`
+- [x] 3.3 FSRS tests still pass: `npm run test`
 - [ ] 3.4 `git grep -n nextOffset -- src` returns nothing
 
 #### Manual
 
-- [ ] 3.5 `GET /api/flashcards?limit=10&offset=0` returns `{ items: [≤10], total }`
-- [ ] 3.6 `offset` beyond `total` returns `{ items: [], total }` without error
-- [ ] 3.7 `limit=100` is rejected/clamped by the schema (max 50)
+- [x] 3.5 `GET /api/flashcards?limit=10&offset=0` returns `{ items: [≤10], total }`
+- [x] 3.6 `offset` beyond `total` returns `{ items: [], total }` without error
+- [x] 3.7 `limit=100` is rejected/clamped by the schema (max 50)
 
 ### Phase 4: Pagination — UI
 

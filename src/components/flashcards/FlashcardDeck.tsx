@@ -101,7 +101,11 @@ export default function FlashcardDeck() {
       }
       const data = await apiRequest<FlashcardListResponse>(`/api/flashcards?${params.toString()}`, { signal });
       setFlashcards((prev) => (mode === "reset" ? data.items : [...prev, ...data.items]));
-      setNextOffset(data.nextOffset);
+      // Stopgap until Phase 4 replaces infinite scroll with numbered
+      // pagination: derive the next offset from the new `total` instead of
+      // the removed `nextOffset` field.
+      const loadedCount = mode === "reset" ? data.items.length : offset + data.items.length;
+      setNextOffset(loadedCount < data.total ? loadedCount : null);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         return;

@@ -35,8 +35,8 @@ export interface FlashcardInput {
 /** Response body for `GET /api/flashcards`. */
 export interface FlashcardListResponse {
   items: Flashcard[];
-  /** Offset to request next, or `null` when there are no more pages. */
-  nextOffset: number | null;
+  /** Total number of rows matching the query, across all pages. */
+  total: number;
 }
 
 /** The one error shape every `/api/flashcards*` route returns on non-2xx. */

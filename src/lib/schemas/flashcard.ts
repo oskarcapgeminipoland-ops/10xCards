@@ -18,7 +18,7 @@ export const flashcardInputSchema: z.ZodType<FlashcardInput> = z.object({
 export const flashcardListQuerySchema = z.object({
   search: z.string().trim().optional(),
   offset: z.coerce.number().int().nonnegative().default(0),
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 
 /**
