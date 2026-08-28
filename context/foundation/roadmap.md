@@ -3,7 +3,7 @@ project: "10xCards"
 version: 1
 status: draft
 created: 2026-08-22
-updated: 2026-08-27
+updated: 2026-08-28
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -157,3 +157,4 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **F-02: (foundation) skonfigurowany dostawca AI (OpenRouter) — klucz API zarządzany jako sekret (`wrangler secret put`), minimalny klient/wrapper gotowy do wywołania z kodu generowania.** — Archived 2026-08-23 → `context/archive/2026-08-23-ai-provider-integration/`. Lesson: —.
 - **S-03: ręcznie tworzy fiszkę niezależnie od AI, edytuje istniejącą fiszkę oraz usuwa fiszkę po potwierdzeniu w dialogu.** — Archived 2026-08-25 → `context/archive/2026-08-23-manual-flashcard-management/`. Lesson: —.
 - **S-01: wkleja tekst źródłowy, prosi o wygenerowanie fiszek przez AI, przegląda listę propozycji i dla każdej akceptuje / edytuje przed akceptacją / odrzuca — zaakceptowane fiszki natychmiast widzi w swoim zestawie.** — Archived 2026-08-26 → `context/archive/2026-08-25-ai-flashcard-generation/`. Lesson: —.
+- **S-02: rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu do powtórzenia.** — Archived 2026-08-28 → `context/archive/2026-08-27-first-review-session/`. Lesson: —.

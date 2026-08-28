@@ -1,10 +1,10 @@
 ---
 change_id: first-review-session
 title: First review session powered by ts-fsrs spaced repetition
-status: impl_reviewed
+status: archived
 created: 2026-08-27
 updated: 2026-08-28
-archived_at: null
+archived_at: 2026-08-28T10:15:25Z
 ---
 
 ## Notes
