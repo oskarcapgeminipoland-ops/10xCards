@@ -497,10 +497,10 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [ ] 1.1 Lint passes: `npm run lint`
-- [ ] 1.2 Production build passes: `npm run build`
-- [ ] 1.3 FSRS tests still pass: `npm run test`
-- [ ] 1.4 No remaining English literals in the translation surface (grep check, exceptions documented)
+- [x] 1.1 Lint passes: `npm run lint`
+- [x] 1.2 Production build passes: `npm run build`
+- [x] 1.3 FSRS tests still pass: `npm run test`
+- [x] 1.4 No remaining English literals in the translation surface (grep check, exceptions documented)
 
 #### Manual
 

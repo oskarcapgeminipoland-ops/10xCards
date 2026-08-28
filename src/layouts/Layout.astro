@@ -3,19 +3,21 @@ import "../styles/global.css";
 import Banner from "@/components/Banner.astro";
 import { missingConfigs } from "@/lib/config-status";
 import { Toaster } from "@/components/ui/sonner";
+import { t } from "@/lib/i18n";
 
 interface Props {
   title?: string;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title = t.meta.defaultTitle } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={t.meta.description} />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <title>{title}</title>
   </head>

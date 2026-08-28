@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { flashcardInputSchema } from "@/lib/schemas/flashcard";
+import { t } from "@/lib/i18n";
 import type { FlashcardInput } from "@/types";
 
 const QUESTION_LIMIT = 500;
@@ -61,7 +62,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <Label htmlFor="flashcard-question" className="text-blue-100/80">
-            Question
+            {t.form.questionLabel}
           </Label>
           <span className={cn("text-xs", question.length > QUESTION_LIMIT ? "text-red-300" : "text-white/40")}>
             {question.length}/{QUESTION_LIMIT}
@@ -73,7 +74,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           onChange={(event) => {
             setQuestion(event.target.value);
           }}
-          placeholder="What do you want to be asked?"
+          placeholder={t.form.questionPlaceholder}
           rows={3}
           className={cn(fieldClass, questionError && fieldErrorClass)}
         />
@@ -83,7 +84,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <Label htmlFor="flashcard-answer" className="text-blue-100/80">
-            Answer
+            {t.form.answerLabel}
           </Label>
           <span className={cn("text-xs", answer.length > ANSWER_LIMIT ? "text-red-300" : "text-white/40")}>
             {answer.length}/{ANSWER_LIMIT}
@@ -95,7 +96,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           onChange={(event) => {
             setAnswer(event.target.value);
           }}
-          placeholder="What's the answer?"
+          placeholder={t.form.answerPlaceholder}
           rows={4}
           className={cn(fieldClass, answerError && fieldErrorClass)}
         />
@@ -110,7 +111,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           disabled={submitting}
           className="text-white/70 hover:bg-white/10 hover:text-white"
         >
-          Cancel
+          {t.common.cancel}
         </Button>
         <Button
           type="submit"
@@ -120,12 +121,12 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           {submitting ? (
             <span className="flex items-center gap-2">
               <Loader2 className="size-4 animate-spin" />
-              {mode === "create" ? "Creating..." : "Saving..."}
+              {mode === "create" ? t.form.creating : t.form.saving}
             </span>
           ) : mode === "create" ? (
-            "Create flashcard"
+            t.form.createSubmit
           ) : (
-            "Save changes"
+            t.form.saveSubmit
           )}
         </Button>
       </div>

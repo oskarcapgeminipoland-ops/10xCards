@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FlashcardForm } from "@/components/flashcards/FlashcardForm";
 import { DeleteFlashcardDialog } from "@/components/flashcards/DeleteFlashcardDialog";
+import { t } from "@/lib/i18n";
 import type { ApiErrorResponse, Flashcard, FlashcardInput, FlashcardListResponse } from "@/types";
 
 const PAGE_SIZE = 20;
@@ -34,7 +35,7 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
-    throw new Error(isApiErrorResponse(body) ? body.error : "Something went wrong");
+    throw new Error(isApiErrorResponse(body) ? body.error : t.common.somethingWentWrong);
   }
 
   return body as T;
@@ -105,7 +106,7 @@ export default function FlashcardDeck() {
       if (err instanceof DOMException && err.name === "AbortError") {
         return;
       }
-      setError(err instanceof Error ? err.message : "Failed to load flashcards");
+      setError(err instanceof Error ? err.message : t.deck.loadError);
     } finally {
       if (mode === "reset") {
         setLoading(false);
@@ -163,10 +164,10 @@ export default function FlashcardDeck() {
         body: JSON.stringify(input),
       });
       setFlashcards((prev) => [created, ...prev]);
-      toast.success("Flashcard created");
+      toast.success(t.deck.createdToast);
       setCreateOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create flashcard");
+      toast.error(err instanceof Error ? err.message : t.deck.createErrorToast);
       throw err;
     }
   }
@@ -179,10 +180,10 @@ export default function FlashcardDeck() {
         body: JSON.stringify(input),
       });
       setFlashcards((prev) => prev.map((flashcard) => (flashcard.id === id ? updated : flashcard)));
-      toast.success("Flashcard updated");
+      toast.success(t.deck.updatedToast);
       setEditingFlashcard(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update flashcard");
+      toast.error(err instanceof Error ? err.message : t.deck.updateErrorToast);
       throw err;
     }
   }
@@ -191,10 +192,10 @@ export default function FlashcardDeck() {
     try {
       await apiRequest(`/api/flashcards/${id}`, { method: "DELETE" });
       setFlashcards((prev) => prev.filter((flashcard) => flashcard.id !== id));
-      toast.success("Flashcard deleted");
+      toast.success(t.deck.deletedToast);
       setDeletingFlashcard(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete flashcard");
+      toast.error(err instanceof Error ? err.message : t.deck.deleteErrorToast);
       throw err;
     }
   }
@@ -209,8 +210,8 @@ export default function FlashcardDeck() {
             onChange={(event) => {
               setSearchInput(event.target.value);
             }}
-            placeholder="Search your flashcards..."
-            aria-label="Search flashcards"
+            placeholder={t.deck.searchPlaceholder}
+            aria-label={t.deck.searchAriaLabel}
             className="border-white/20 bg-white/10 pl-10 text-white placeholder:text-white/40 focus-visible:border-purple-400 focus-visible:ring-purple-400/40"
           />
         </div>
@@ -221,7 +222,7 @@ export default function FlashcardDeck() {
           className="gap-2 bg-purple-600 text-white hover:bg-purple-500"
         >
           <Plus className="size-4" />
-          New flashcard
+          {t.deck.newButton}
         </Button>
       </div>
 
@@ -238,10 +239,10 @@ export default function FlashcardDeck() {
       ) : flashcards.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
           {debouncedSearch ? (
-            <p className="text-blue-100/70">No flashcards match &ldquo;{debouncedSearch}&rdquo;.</p>
+            <p className="text-blue-100/70">{t.deck.emptyNoMatch(debouncedSearch)}</p>
           ) : (
             <>
-              <p className="mb-4 text-blue-100/70">You haven&apos;t created any flashcards yet.</p>
+              <p className="mb-4 text-blue-100/70">{t.deck.emptyNoCards}</p>
               <Button
                 onClick={() => {
                   setCreateOpen(true);
@@ -249,7 +250,7 @@ export default function FlashcardDeck() {
                 className="gap-2 bg-purple-600 text-white hover:bg-purple-500"
               >
                 <Plus className="size-4" />
-                Create your first flashcard
+                {t.deck.createFirst}
               </Button>
             </>
           )}
@@ -271,7 +272,7 @@ export default function FlashcardDeck() {
                       setEditingFlashcard(flashcard);
                     }}
                     className="text-white/70 hover:bg-white/10 hover:text-white"
-                    aria-label="Edit flashcard"
+                    aria-label={t.deck.editAriaLabel}
                   >
                     <Pencil className="size-4" />
                   </Button>
@@ -282,7 +283,7 @@ export default function FlashcardDeck() {
                       setDeletingFlashcard(flashcard);
                     }}
                     className="text-white/70 hover:bg-red-500/20 hover:text-red-300"
-                    aria-label="Delete flashcard"
+                    aria-label={t.deck.deleteAriaLabel}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -304,8 +305,8 @@ export default function FlashcardDeck() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className={dialogContentClass}>
           <DialogHeader>
-            <DialogTitle className="text-white">New flashcard</DialogTitle>
-            <DialogDescription className="text-blue-100/70">Add a question and answer to your deck.</DialogDescription>
+            <DialogTitle className="text-white">{t.deck.createDialogTitle}</DialogTitle>
+            <DialogDescription className="text-blue-100/70">{t.deck.createDialogDescription}</DialogDescription>
           </DialogHeader>
           <FlashcardForm
             mode="create"
@@ -327,8 +328,8 @@ export default function FlashcardDeck() {
       >
         <DialogContent className={dialogContentClass}>
           <DialogHeader>
-            <DialogTitle className="text-white">Edit flashcard</DialogTitle>
-            <DialogDescription className="text-blue-100/70">Update the question or answer.</DialogDescription>
+            <DialogTitle className="text-white">{t.deck.editDialogTitle}</DialogTitle>
+            <DialogDescription className="text-blue-100/70">{t.deck.editDialogDescription}</DialogDescription>
           </DialogHeader>
           {editingFlashcard && (
             <FlashcardForm

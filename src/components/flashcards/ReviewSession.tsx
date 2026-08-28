@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 import type {
   ApiErrorResponse,
   ReviewCard,
@@ -16,7 +17,12 @@ import type {
 
 type Phase = "loading" | "empty-no-cards" | "empty-none-due" | "active" | "submitting" | "complete" | "error";
 
-const RATING_LABELS: Record<ReviewRating, string> = { 1: "Again", 2: "Hard", 3: "Good", 4: "Easy" };
+const RATING_LABELS: Record<ReviewRating, string> = {
+  1: t.review.ratingAgain,
+  2: t.review.ratingHard,
+  3: t.review.ratingGood,
+  4: t.review.ratingEasy,
+};
 
 const RATING_BUTTON_CLASS: Record<ReviewRating, string> = {
   1: "border-red-500/30 bg-red-900/20 text-red-200 hover:bg-red-900/40",
@@ -46,20 +52,10 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
-    throw new Error(isApiErrorResponse(body) ? body.error : "Something went wrong");
+    throw new Error(isApiErrorResponse(body) ? body.error : t.common.somethingWentWrong);
   }
 
   return body as T;
-}
-
-function formatInterval(intervalDays: number): string {
-  if (intervalDays <= 0) {
-    return "<1d";
-  }
-  if (intervalDays === 1) {
-    return "1d";
-  }
-  return `${intervalDays}d`;
 }
 
 /**
@@ -97,7 +93,7 @@ export default function ReviewSession() {
         setPhase("active");
       }
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Failed to load your review session");
+      setLoadError(err instanceof Error ? err.message : t.review.loadError);
       setPhase("error");
     }
   }
@@ -134,7 +130,7 @@ export default function ReviewSession() {
         setPhase("active");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to submit rating — try again");
+      toast.error(err instanceof Error ? err.message : t.review.submitError);
       setPhase("active");
     } finally {
       setPendingRating(null);
@@ -159,7 +155,7 @@ export default function ReviewSession() {
           }}
           className="gap-2 bg-purple-600 text-white hover:bg-purple-500"
         >
-          Try again
+          {t.common.tryAgain}
         </Button>
       </div>
     );
@@ -168,9 +164,9 @@ export default function ReviewSession() {
   if (phase === "empty-no-cards") {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-        <p className="mb-4 text-blue-100/70">You don&apos;t have any flashcards yet — nothing to review.</p>
+        <p className="mb-4 text-blue-100/70">{t.review.emptyNoCards}</p>
         <Button asChild className="gap-2 bg-purple-600 text-white hover:bg-purple-500">
-          <a href="/flashcards/generate">Generate flashcards with AI</a>
+          <a href="/flashcards/generate">{t.review.generateWithAi}</a>
         </Button>
       </div>
     );
@@ -179,9 +175,9 @@ export default function ReviewSession() {
   if (phase === "empty-none-due") {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-        <p className="mb-4 text-blue-100/70">Nothing&apos;s due right now — come back later.</p>
+        <p className="mb-4 text-blue-100/70">{t.review.emptyNoneDue}</p>
         <Button asChild variant="ghost" className="text-purple-300 hover:bg-white/10 hover:text-purple-100">
-          <a href="/flashcards">Back to your flashcards</a>
+          <a href="/flashcards">{t.review.backToFlashcards}</a>
         </Button>
       </div>
     );
@@ -190,7 +186,7 @@ export default function ReviewSession() {
   if (phase === "complete") {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-        <h2 className="mb-4 text-xl font-semibold text-white">Session complete</h2>
+        <h2 className="mb-4 text-xl font-semibold text-white">{t.review.sessionComplete}</h2>
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {RATINGS.map((rating) => (
             <div key={rating} className="rounded-xl border border-white/10 bg-white/5 px-3 py-4">
@@ -200,7 +196,7 @@ export default function ReviewSession() {
           ))}
         </div>
         <Button asChild className="gap-2 bg-purple-600 text-white hover:bg-purple-500">
-          <a href="/flashcards">Back to your flashcards</a>
+          <a href="/flashcards">{t.review.backToFlashcards}</a>
         </Button>
       </div>
     );
@@ -214,9 +210,7 @@ export default function ReviewSession() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-blue-100/60">
-        Card {currentIndex + 1} of {items.length}
-      </p>
+      <p className="text-sm text-blue-100/60">{t.review.cardCounter(currentIndex + 1, items.length)}</p>
       <Card className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl">
         <CardContent className="space-y-4">
           <p className="text-lg font-medium break-words text-white">{currentItem.flashcard.question}</p>
@@ -230,7 +224,7 @@ export default function ReviewSession() {
               variant="ghost"
               className="border border-white/20 text-white hover:bg-white/10"
             >
-              Show answer
+              {t.review.showAnswer}
             </Button>
           )}
         </CardContent>
@@ -255,7 +249,7 @@ export default function ReviewSession() {
               ) : (
                 <>
                   <span className="font-medium">{RATING_LABELS[preview.rating]}</span>
-                  <span className="text-xs opacity-70">{formatInterval(preview.intervalDays)}</span>
+                  <span className="text-xs opacity-70">{t.review.formatInterval(preview.intervalDays)}</span>
                 </>
               )}
             </Button>
