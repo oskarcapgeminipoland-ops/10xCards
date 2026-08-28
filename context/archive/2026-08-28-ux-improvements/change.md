@@ -1,10 +1,10 @@
 ---
 change_id: ux-improvements
 title: "Dopracowanie UX: polonizacja, walidacja, paginacja listy i strona główna"
-status: impl_reviewed
+status: archived
 created: 2026-08-28
 updated: 2026-08-28
-archived_at: null
+archived_at: 2026-08-28T16:22:22Z
 ---
 
 ## Notes
