@@ -36,7 +36,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | done |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | done |
 | S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | done |
-| S-04 | ux-improvements | korzysta z polskojęzycznego, dopracowanego UI: bez przedwczesnych błędów walidacji, paginacja listy fiszek (10/20/50, domyślnie 10), „Ustawienia" zamiast „dashboard", strona główna z brandingiem 10xCards i osobnym widokiem zalogowany/niezalogowany | F-01 | US-01, FR-005, FR-006 | planned |
+| S-04 | ux-improvements | korzysta z polskojęzycznego, dopracowanego UI: bez przedwczesnych błędów walidacji, paginacja listy fiszek (10/20/50, domyślnie 10), „Ustawienia" zamiast „dashboard", strona główna z brandingiem 10xCards i osobnym widokiem zalogowany/niezalogowany | F-01 | US-01, FR-005, FR-006 | planning |
 
 ## Streams
 
@@ -138,7 +138,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Czysta warstwa prezentacji na dostarczonych slice'ach S-01–S-03 — nie zmienia backendu ani modelu danych, a odłożenie jej nie blokuje kolejnych funkcji. Ale angielski UI i przedwczesne błędy walidacji psują pierwsze wrażenie dokładnie w tych przepływach, które testują główną hipotezę produktu.
-- **Status:** planned
+- **Status:** planning
 
 ## Backlog Handoff
 
