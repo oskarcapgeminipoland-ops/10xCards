@@ -55,6 +55,7 @@ npm run dev
 - `npm run lint` - Run ESLint with type-checked rules
 - `npm run lint:fix` - Auto-fix ESLint issues
 - `npm run format` - Run Prettier
+- `npm run test` - Run unit tests
 
 ## Project Structure
 
