@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { t } from "@/lib/i18n";
 import type { Flashcard } from "@/types";
 
 interface DeleteFlashcardDialogProps {
@@ -43,14 +44,14 @@ export function DeleteFlashcardDialog({ flashcard, onConfirm, onCancel }: Delete
         }
       }}
     >
-      <AlertDialogContent className="max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white">
+      <AlertDialogContent className="bg-surface max-h-[85vh] overflow-y-auto border-white/10 text-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-white">
             <Trash2 className="size-5 text-red-300" aria-hidden="true" />
-            Delete this flashcard?
+            {t.delete.title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-blue-100/70">
-            This permanently deletes &ldquo;{flashcard.question}&rdquo;. This action cannot be undone.
+            {t.delete.description(flashcard.question)}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -59,7 +60,7 @@ export function DeleteFlashcardDialog({ flashcard, onConfirm, onCancel }: Delete
             disabled={deleting}
             className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
           >
-            Cancel
+            {t.common.cancel}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={(event) => {
@@ -72,10 +73,10 @@ export function DeleteFlashcardDialog({ flashcard, onConfirm, onCancel }: Delete
             {deleting ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="size-4 animate-spin" />
-                Deleting...
+                {t.delete.deleting}
               </span>
             ) : (
-              "Delete"
+              t.common.delete
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

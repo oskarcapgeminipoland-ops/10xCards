@@ -12,11 +12,16 @@ import { parseGeneratedContent, type ParsedGeneration } from "@/lib/services/fla
 
 const SYSTEM_PROMPT = `You are a flashcard generator for a spaced-repetition study app. Given source text
 pasted by a language learner, produce concise question-and-answer flashcard pairs
-that test recall of the text's key facts, vocabulary, or concepts. Respond with
-ONLY a JSON array of objects, each with exactly two string fields: "question" and
-"answer". Do not include markdown formatting, code fences, or any text outside the
-JSON array. Each question must be 500 characters or fewer; each answer must be
-500 characters or fewer. Produce between 3 and 5 flashcards, choosing a count
+that test recall of the text's key facts, vocabulary, or concepts.
+
+Write every flashcard — both the "question" and the "answer" — in the same language
+as the source text. Do not translate into another language; if the source text is in
+Polish, the flashcards must be in Polish.
+
+Respond with ONLY a JSON array of objects, each with exactly two string fields:
+"question" and "answer". Do not include markdown formatting, code fences, or any text
+outside the JSON array. Each question must be 500 characters or fewer; each answer
+must be 500 characters or fewer. Produce between 3 and 5 flashcards, choosing a count
 proportional to how much distinct, testable content the text contains.`;
 
 function apiError(message: string): OpenRouterClientError {

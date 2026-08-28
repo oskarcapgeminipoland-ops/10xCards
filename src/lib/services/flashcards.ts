@@ -42,11 +42,13 @@ export interface ListFlashcardsParams {
   limit: number;
 }
 
-export async function listFlashcards(
-  supabase: SupabaseClient,
-  { search, offset, limit }: ListFlashcardsParams,
-): Promise<FlashcardListResponse> {
-  let query = supabase.from("flashcards").select("*");
+/**
+ * Builds a `flashcards` select carrying an exact count and the optional
+ * search filter. `head: true` skips the row payload (count-only) — used to
+ * recover `total` when the main page query lands past the last row.
+ */
+function buildFlashcardsListQuery(supabase: SupabaseClient, search: string | undefined, head: boolean) {
+  let query = supabase.from("flashcards").select("*", { count: "exact", head });
 
   if (search) {
     // Escape SQL-LIKE wildcards (%, _) and PostgREST .or() mini-language
@@ -56,20 +58,41 @@ export async function listFlashcards(
     query = query.or(`question.ilike.%${escaped}%,answer.ilike.%${escaped}%`);
   }
 
-  const { data, error } = await query
+  return query;
+}
+
+/**
+ * Returns exactly one page (`limit` rows from `offset`) plus `total`, the
+ * exact row count matching the query across all pages — the numbered
+ * pagination UI needs it to compute the last page. `{ count: "exact" }`
+ * asks PostgREST for that aggregate; `count` is populated on the resolved
+ * response even with `.overrideTypes()` in the chain (verified against
+ * @supabase/postgrest-js 2.105.3).
+ */
+export async function listFlashcards(
+  supabase: SupabaseClient,
+  { search, offset, limit }: ListFlashcardsParams,
+): Promise<FlashcardListResponse> {
+  const { data, error, count, status } = await buildFlashcardsListQuery(supabase, search, false)
     .order("created_at", { ascending: false })
-    .range(offset, offset + limit)
+    .range(offset, offset + limit - 1)
     .overrideTypes<FlashcardRow[], { merge: false }>();
+
   if (error) {
+    // PostgREST answers PGRST103 / HTTP 416 when `offset` starts past the
+    // last row (deep page after deletions, hand-edited URL). That's an
+    // empty page, not a failure — re-query count-only so the caller still
+    // gets an accurate `total` for clamping.
+    if (status === 416 || error.code === "PGRST103") {
+      const { count: total } = await buildFlashcardsListQuery(supabase, search, true);
+      return { items: [], total: total ?? 0 };
+    }
     throw error;
   }
 
-  const hasNextPage = data.length > limit;
-  const items = (hasNextPage ? data.slice(0, limit) : data).map(toFlashcard);
-
   return {
-    items,
-    nextOffset: hasNextPage ? offset + limit : null,
+    items: data.map(toFlashcard),
+    total: count ?? 0,
   };
 }
 

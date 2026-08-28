@@ -36,7 +36,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | done |
 | S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | done |
 | S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | done |
-| S-04 | ux-improvements | korzysta z polskojęzycznego, dopracowanego UI: bez przedwczesnych błędów walidacji, paginacja listy fiszek (10/20/50, domyślnie 10), „Ustawienia" zamiast „dashboard", strona główna z brandingiem 10xCards i osobnym widokiem zalogowany/niezalogowany | F-01 | US-01, FR-005, FR-006 | planned |
+| S-04 | ux-improvements | korzysta z polskojęzycznego, dopracowanego UI: bez przedwczesnych błędów walidacji, paginacja listy fiszek (10/20/50, domyślnie 10), „Ustawienia" zamiast „dashboard", strona główna z brandingiem 10xCards i osobnym widokiem zalogowany/niezalogowany | F-01 | US-01, FR-005, FR-006 | done |
 
 ## Streams
 
@@ -138,7 +138,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Czysta warstwa prezentacji na dostarczonych slice'ach S-01–S-03 — nie zmienia backendu ani modelu danych, a odłożenie jej nie blokuje kolejnych funkcji. Ale angielski UI i przedwczesne błędy walidacji psują pierwsze wrażenie dokładnie w tych przepływach, które testują główną hipotezę produktu.
-- **Status:** planned
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -173,3 +173,4 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **S-03: ręcznie tworzy fiszkę niezależnie od AI, edytuje istniejącą fiszkę oraz usuwa fiszkę po potwierdzeniu w dialogu.** — Archived 2026-08-25 → `context/archive/2026-08-23-manual-flashcard-management/`. Lesson: —.
 - **S-01: wkleja tekst źródłowy, prosi o wygenerowanie fiszek przez AI, przegląda listę propozycji i dla każdej akceptuje / edytuje przed akceptacją / odrzuca — zaakceptowane fiszki natychmiast widzi w swoim zestawie.** — Archived 2026-08-26 → `context/archive/2026-08-25-ai-flashcard-generation/`. Lesson: —.
 - **S-02: rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu do powtórzenia.** — Archived 2026-08-28 → `context/archive/2026-08-27-first-review-session/`. Lesson: —.
+- **S-04: widzi w pełni polskojęzyczny interfejs (labele, komunikaty, nawigacja); formularz ręcznego dodawania fiszki i pole tekstu źródłowego do generowania AI nie pokazują błędu walidacji przed pierwszą interakcją z polem; lista fiszek jest paginowana (domyślnie 10 na stronę, z możliwością zmiany na 20 lub 50); pozycja nawigacji „dashboard" nazywa się „Ustawienia"; strona główna prezentuje design i treści 10xCards zamiast szablonu startera, z jaśniejszym tłem i osobnym widokiem dla użytkownika zalogowanego i niezalogowanego.** — Archived 2026-08-28 → `context/archive/2026-08-28-ux-improvements/`. Lesson: —.

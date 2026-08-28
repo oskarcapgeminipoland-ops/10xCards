@@ -111,12 +111,24 @@
 }
 
 @utility bg-cosmic {
-  background-image: linear-gradient(to bottom, #0a0e1a, #0f1529, #0a0e1a);
+  background-image: linear-gradient(to bottom, #1b1e30, #262a45, #1b1e30);
+}
+
+/* Raised surface (dialogs, popovers, selects) — a step lighter than the
+   `bg-cosmic` page so panels read as floating above it. */
+@utility bg-surface {
+  background-color: #30334d;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  /* Reserve the scrollbar gutter permanently so opening a Radix Select /
+     Dialog (which locks body scroll) doesn't collapse the scrollbar and
+     shift the page sideways. */
+  html {
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;

@@ -1,0 +1,209 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Topbar from "@/components/Topbar.astro";
+import StatCard from "@/components/settings/StatCard.astro";
+import { createClient } from "@/lib/supabase";
+import { getAccountStats, type AccountStats } from "@/lib/services/account-stats";
+import { t } from "@/lib/i18n";
+
+const { user } = Astro.locals;
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+let stats: AccountStats | null = null;
+let statsFailed = false;
+if (supabase) {
+  try {
+    stats = await getAccountStats(supabase);
+  } catch {
+    statsFailed = true;
+  }
+}
+
+const DAY_MS = 86_400_000;
+const daysSince = (iso: string | null | undefined) =>
+  iso == null ? null : Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DAY_MS));
+
+const accountDays = daysSince(user?.created_at);
+const lastReviewDays = daysSince(stats?.lastReview);
+const nextDueDays =
+  stats?.nextDue != null ? Math.max(0, Math.ceil((new Date(stats.nextDue).getTime() - Date.now()) / DAY_MS)) : null;
+const reviewedPct = stats && stats.total > 0 ? Math.round((stats.reviewedCount / stats.total) * 100) : 0;
+
+const dueHint =
+  stats == null
+    ? undefined
+    : stats.dueNow === 0
+      ? t.settings.statDueClear
+      : nextDueDays != null
+        ? t.settings.statDueNext(nextDueDays)
+        : undefined;
+---
+
+<Layout title={t.meta.titleSettings}>
+  <div class="bg-cosmic flex min-h-screen flex-col items-center p-4 pt-6">
+    <div class="w-full max-w-3xl">
+      <Topbar />
+    </div>
+    <div class="mt-6 w-full max-w-3xl space-y-6">
+      <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+        {t.settings.heading}
+      </h1>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold text-white">{t.settings.accountTitle}</h2>
+        <p class="text-sm text-blue-100/80">
+          {t.settings.signedInAs}
+          <span class="font-semibold text-white">{user?.email}</span>
+        </p>
+        {accountDays != null && <p class="mt-1 text-xs text-blue-100/70">{t.settings.daysLearning(accountDays)}</p>}
+        <form method="POST" action="/api/auth/signout" class="mt-6">
+          <button
+            type="submit"
+            class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+          >
+            {t.settings.signOut}
+          </button>
+        </form>
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold text-white">{t.settings.statsHeading}</h2>
+
+        {
+          statsFailed || stats == null ? (
+            <p class="text-sm text-blue-100/70">{t.settings.statsUnavailable}</p>
+          ) : stats.total === 0 ? (
+            <div class="rounded-xl border border-white/10 bg-white/8 p-6 text-center">
+              <p class="mb-3 text-sm text-blue-100/75">{t.settings.emptyStats}</p>
+              <a
+                href="/flashcards/generate"
+                class="inline-flex rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-500"
+              >
+                {t.settings.emptyStatsCta}
+              </a>
+            </div>
+          ) : (
+            <div class="space-y-4">
+              <div class="rounded-xl border border-white/10 bg-white/8 p-4">
+                <div class="mb-2 flex items-baseline justify-between gap-2 text-sm">
+                  <span class="text-blue-100/80">{t.settings.progressLabel(stats.reviewedCount, stats.total)}</span>
+                  <span class="font-semibold text-white">{reviewedPct}%</span>
+                </div>
+                <div class="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    class="h-full rounded-full bg-gradient-to-r from-sky-400 to-purple-400"
+                    style={`width: ${reviewedPct}%`}
+                  />
+                </div>
+                {stats.reviewedCount > 0 && (
+                  <p class="mt-2 text-xs text-blue-100/70">
+                    {t.settings.stateBreakdown(stats.learningCount, stats.reviewCount, stats.relearningCount)}
+                  </p>
+                )}
+              </div>
+
+              <div class="grid gap-3 sm:grid-cols-2">
+                <StatCard
+                  tone="purple"
+                  label={t.settings.statTotal}
+                  value={stats.total}
+                  hint={t.settings.statTotalHint(stats.aiCount, stats.manualCount)}
+                >
+                  <svg
+                    slot="icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="size-4"
+                  >
+                    <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                    <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+                    <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+                  </svg>
+                </StatCard>
+
+                <StatCard tone="amber" label={t.settings.statDue} value={stats.dueNow} hint={dueHint}>
+                  <svg
+                    slot="icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="size-4"
+                  >
+                    <circle cx="12" cy="13" r="8" />
+                    <path d="M5 3 2 6" />
+                    <path d="m22 6-3-3" />
+                    <path d="M6.38 18.7 4 21" />
+                    <path d="M17.64 18.67 20 21" />
+                    <path d="M12 10v3l2 1" />
+                  </svg>
+                </StatCard>
+
+                <StatCard
+                  tone="blue"
+                  label={t.settings.statReps}
+                  value={stats.totalReps}
+                  hint={t.settings.statRepsHint(stats.totalLapses)}
+                >
+                  <svg
+                    slot="icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="size-4"
+                  >
+                    <path d="m17 2 4 4-4 4" />
+                    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                    <path d="m7 22-4-4 4-4" />
+                    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+                  </svg>
+                </StatCard>
+
+                <StatCard
+                  tone="pink"
+                  label={t.settings.statWeek}
+                  value={`+${stats.addedLast7Days}`}
+                  hint={t.settings.statWeekHint}
+                >
+                  <svg
+                    slot="icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="size-4"
+                  >
+                    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z" />
+                    <path d="M20 3v4" />
+                    <path d="M22 5h-4" />
+                    <path d="M4 17v2" />
+                    <path d="M5 18H3" />
+                  </svg>
+                </StatCard>
+              </div>
+
+              <p class="text-xs text-blue-100/70">
+                {lastReviewDays != null ? t.settings.lastReviewAgo(lastReviewDays) : t.settings.noReviewsYet}
+              </p>
+            </div>
+          )
+        }
+      </section>
+    </div>
+  </div>
+</Layout>

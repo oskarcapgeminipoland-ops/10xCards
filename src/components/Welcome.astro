@@ -1,5 +1,23 @@
 ---
 import Topbar from "@/components/Topbar.astro";
+import { t } from "@/lib/i18n";
+
+const steps = [
+  { title: t.landing.step1Title, body: t.landing.step1Body },
+  { title: t.landing.step2Title, body: t.landing.step2Body },
+  { title: t.landing.step3Title, body: t.landing.step3Body },
+];
+
+// Ambient drifting mini-flashcards: staggered start (--d) and speed (--dur),
+// horizontal position (--x) and scale (--s). Purely decorative.
+const floaters = [
+  { x: "8%", d: "0s", dur: "27s", s: "0.9" },
+  { x: "23%", d: "-7s", dur: "33s", s: "0.68" },
+  { x: "45%", d: "-15s", dur: "24s", s: "1" },
+  { x: "62%", d: "-4s", dur: "30s", s: "0.8" },
+  { x: "79%", d: "-19s", dur: "29s", s: "0.62" },
+  { x: "91%", d: "-11s", dur: "35s", s: "0.95" },
+];
 ---
 
 <div class="bg-cosmic relative min-h-screen w-full overflow-hidden">
@@ -24,6 +42,11 @@ import Topbar from "@/components/Topbar.astro";
   >
   </div>
 
+  <!-- Drifting flashcards -->
+  <div class="fc-field pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    {floaters.map((f) => <i class="fc-card" style={`--x:${f.x};--d:${f.d};--dur:${f.dur};--s:${f.s};`} />)}
+  </div>
+
   <div class="relative z-10 p-4 sm:p-8">
     <Topbar />
 
@@ -32,96 +55,236 @@ import Topbar from "@/components/Topbar.astro";
       <h1
         class="mb-6 bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-5xl leading-tight font-bold text-transparent sm:text-6xl lg:text-7xl"
       >
-        10x Astro Starter
+        {t.landing.heroTitle}
       </h1>
       <p class="mb-10 max-w-2xl text-lg text-blue-100/70 sm:text-xl">
-        A production-ready starter with authentication, modern tooling, and a cosmic developer experience. Deployment
-        test... 2
+        {t.landing.heroPitch}
       </p>
-      <div class="flex flex-col gap-4 sm:flex-row">
-        <a
-          href="/auth/signin"
-          class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-purple-500"
-        >
-          Sign In
+      <div class="flex flex-col items-center gap-4 sm:flex-row">
+        <a href="/auth/signup" class="flip-cta flip-cta--primary" aria-label={t.landing.ctaPrimary}>
+          <span class="flip-cta__inner">
+            <span class="flip-cta__face flip-cta__front">
+              <span class="flip-cta__tag">{t.landing.ctaPrimaryTag}</span>
+              <span class="flip-cta__label">{t.landing.ctaPrimary}</span>
+            </span>
+            <span class="flip-cta__face flip-cta__back">
+              <span class="flip-cta__label">{t.landing.ctaPrimaryBack}</span>
+            </span>
+          </span>
         </a>
-        <a
-          href="/auth/signup"
-          class="inline-flex items-center justify-center rounded-lg border border-white/20 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-white/10"
-        >
-          Sign Up
+        <a href="/auth/signin" class="flip-cta flip-cta--ghost" aria-label={t.landing.ctaSecondary}>
+          <span class="flip-cta__inner">
+            <span class="flip-cta__face flip-cta__front">
+              <span class="flip-cta__tag">{t.landing.ctaSecondaryTag}</span>
+              <span class="flip-cta__label">{t.landing.ctaSecondary}</span>
+            </span>
+            <span class="flip-cta__face flip-cta__back">
+              <span class="flip-cta__label">{t.landing.ctaSecondaryBack}</span>
+            </span>
+          </span>
         </a>
       </div>
     </div>
 
-    <!-- Feature cards -->
-    <div class="mx-auto grid max-w-4xl grid-cols-1 gap-6 px-4 pb-24 sm:grid-cols-3">
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="mb-4 text-purple-300"
-        >
-          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-        <h3 class="mb-2 text-lg font-semibold text-white">Authentication Ready</h3>
-        <p class="text-sm leading-relaxed text-blue-100/60">
-          Built-in Supabase auth with sign in, sign up, and protected routes out of the box.
-        </p>
-      </div>
-
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="mb-4 text-purple-300"
-        >
-          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-          <polyline points="2 17 12 22 22 17"></polyline>
-          <polyline points="2 12 12 17 22 12"></polyline>
-        </svg>
-        <h3 class="mb-2 text-lg font-semibold text-white">Modern Stack</h3>
-        <p class="text-sm leading-relaxed text-blue-100/60">
-          Astro 5, React 19, Tailwind 4, and TypeScript — the latest tools, ready to go.
-        </p>
-      </div>
-
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="mb-4 text-purple-300"
-        >
-          <polyline points="16 18 22 12 16 6"></polyline>
-          <polyline points="8 6 2 12 8 18"></polyline>
-        </svg>
-        <h3 class="mb-2 text-lg font-semibold text-white">Developer Experience</h3>
-        <p class="text-sm leading-relaxed text-blue-100/60">
-          ESLint, Prettier, and pre-commit hooks keep your codebase clean from day one.
-        </p>
+    <!-- How it works -->
+    <div class="mx-auto max-w-4xl px-4 pb-24">
+      <h2 class="mb-8 text-center text-2xl font-semibold text-white sm:text-3xl">
+        {t.landing.howItWorksTitle}
+      </h2>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {
+          steps.map((step, index) => (
+            <div class="rounded-xl border border-white/10 bg-white/8 p-6 backdrop-blur-xl">
+              <div class="mb-4 flex size-9 items-center justify-center rounded-full bg-purple-500/20 text-sm font-semibold text-purple-200">
+                {index + 1}
+              </div>
+              <h3 class="mb-2 text-lg font-semibold text-white">{step.title}</h3>
+              <p class="text-sm leading-relaxed text-blue-100/75">{step.body}</p>
+            </div>
+          ))
+        }
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* ---- Ambient drifting flashcards ---- */
+  .fc-field {
+    /* fade the field out toward the centre so it never fights the hero copy */
+    -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 42%, transparent 0%, black 78%);
+    mask-image: radial-gradient(ellipse 60% 55% at 50% 42%, transparent 0%, black 78%);
+  }
+
+  .fc-card {
+    position: absolute;
+    bottom: -140px;
+    left: var(--x);
+    width: calc(84px * var(--s));
+    height: calc(112px * var(--s));
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    animation: fc-drift var(--dur) linear var(--d) infinite;
+    will-change: transform, opacity;
+  }
+
+  /* the "question" and "answer" rules inside each mini-card */
+  .fc-card::before,
+  .fc-card::after {
+    content: "";
+    position: absolute;
+    left: 16%;
+    height: 5px;
+    border-radius: 999px;
+  }
+  .fc-card::before {
+    top: 26%;
+    width: 60%;
+    background: rgba(196, 181, 253, 0.4);
+  }
+  .fc-card::after {
+    top: 44%;
+    width: 38%;
+    background: rgba(147, 197, 253, 0.34);
+  }
+
+  @keyframes fc-drift {
+    0% {
+      transform: translateY(0) rotate(-9deg);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateY(-58vh) rotate(7deg);
+    }
+    88% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(-116vh) rotate(-4deg);
+      opacity: 0;
+    }
+  }
+
+  /* ---- CTA buttons styled as flip-flashcards ---- */
+  .flip-cta {
+    display: block;
+    width: 14rem;
+    max-width: 100%;
+    height: 4.75rem;
+    perspective: 950px;
+    border-radius: 0.85rem;
+    outline-offset: 3px;
+    transition: transform 0.3s ease;
+  }
+  .flip-cta:hover {
+    transform: translateY(-3px);
+  }
+
+  .flip-cta__inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    /* Symmetric easing: at exactly half the duration the card is at 90°
+       (edge-on), which is when the face-opacity swap below fires. */
+    transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .flip-cta:hover .flip-cta__inner,
+  .flip-cta:focus-visible .flip-cta__inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-cta__face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0 1rem;
+    border-radius: 0.85rem;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* Face swap is driven by opacity, snapped at the mid-point of the flip
+       (card edge-on, invisible), so it never depends on flaky backface
+       culling — which Chromium ignores here whenever the visible face isn't
+       fully opaque. Delay must equal half the flip duration above. */
+    opacity: 1;
+    transition: opacity 0s linear 0.25s;
+  }
+  .flip-cta__back {
+    transform: rotateY(180deg);
+    opacity: 0;
+  }
+  .flip-cta:hover .flip-cta__front,
+  .flip-cta:focus-visible .flip-cta__front {
+    opacity: 0;
+  }
+  .flip-cta:hover .flip-cta__back,
+  .flip-cta:focus-visible .flip-cta__back {
+    opacity: 1;
+  }
+
+  .flip-cta__tag {
+    position: relative;
+    padding-bottom: 0.3rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.72;
+  }
+  .flip-cta__tag::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 1.6rem;
+    height: 1px;
+    transform: translateX(-50%);
+    background: currentColor;
+    opacity: 0.45;
+  }
+  .flip-cta__label {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .flip-cta--primary .flip-cta__face {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #fff;
+    box-shadow: 0 14px 34px -10px rgba(124, 58, 237, 0.55);
+  }
+  .flip-cta--ghost .flip-cta__face {
+    /* no backdrop-filter here: it defeats `backface-visibility: hidden` in
+       Chromium, leaving the mirrored front face visible through the flip. */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.09);
+    color: #fff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fc-card {
+      animation-play-state: paused;
+    }
+    .flip-cta,
+    .flip-cta__inner,
+    .flip-cta__face {
+      transition: none;
+    }
+    .flip-cta:hover {
+      transform: none;
+    }
+    .flip-cta:hover .flip-cta__inner,
+    .flip-cta:focus-visible .flip-cta__inner {
+      transform: none;
+    }
+  }
+</style>

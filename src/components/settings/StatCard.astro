@@ -1,0 +1,37 @@
+---
+/**
+ * One tile in the /settings stats grid: a tinted icon chip on the left,
+ * a big value + label (+ optional hint) on the right. Pass the icon SVG in
+ * the `icon` slot — it inherits `currentColor`, so keep it stroke-based and
+ * uncoloured.
+ */
+type Tone = "purple" | "blue" | "emerald" | "amber" | "pink";
+
+interface Props {
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: Tone;
+}
+
+const { label, value, hint, tone = "purple" } = Astro.props;
+
+const toneClass: Record<Tone, string> = {
+  purple: "bg-purple-500/15 text-purple-200",
+  blue: "bg-sky-500/15 text-sky-200",
+  emerald: "bg-emerald-500/15 text-emerald-200",
+  amber: "bg-amber-500/15 text-amber-100",
+  pink: "bg-pink-500/15 text-pink-200",
+};
+---
+
+<div class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/8 p-4">
+  <span class:list={["flex size-9 shrink-0 items-center justify-center rounded-lg", toneClass[tone]]}>
+    <slot name="icon" />
+  </span>
+  <div class="min-w-0">
+    <p class="text-2xl leading-tight font-bold text-white">{value}</p>
+    <p class="text-sm text-blue-100/80">{label}</p>
+    {hint && <p class="mt-0.5 text-xs text-blue-100/70">{hint}</p>}
+  </div>
+</div>

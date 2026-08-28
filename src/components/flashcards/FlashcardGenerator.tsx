@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { generateRequestSchema } from "@/lib/schemas/flashcard";
+import { t } from "@/lib/i18n";
 import { FlashcardForm } from "@/components/flashcards/FlashcardForm";
 import type {
   ApiErrorResponse,
@@ -29,14 +30,9 @@ import type {
 
 const SOURCE_TEXT_LIMIT = 5000;
 
-const STATUS_MESSAGES = [
-  "Reading your text...",
-  "Identifying key facts and concepts...",
-  "Drafting question-and-answer pairs...",
-  "Almost there...",
-];
+const STATUS_MESSAGES = t.generate.statusMessages;
 
-const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white";
+const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-surface text-white";
 
 type ProposalWithId = FlashcardInput & { clientId: string };
 type Phase = "idle" | "generating" | "reviewing" | "error";
@@ -60,7 +56,7 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
-    throw new Error(isApiErrorResponse(body) ? body.error : "Something went wrong");
+    throw new Error(isApiErrorResponse(body) ? body.error : t.common.somethingWentWrong);
   }
 
   return body as T;
@@ -83,6 +79,14 @@ export default function FlashcardGenerator() {
   const [acceptingIds, setAcceptingIds] = useState<Set<string>>(new Set());
   const [confirmRegenerateOpen, setConfirmRegenerateOpen] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // How many proposals the current batch produced, and how many the user
+  // has accepted from it — so the "review done" state can tell "generation
+  // yielded nothing" apart from "you've worked through them all".
+  const [batchSize, setBatchSize] = useState(0);
+  const [acceptedCount, setAcceptedCount] = useState(0);
+  // Hide the source-text validation error until the field is blurred; the
+  // live `parsedSource` result still gates the generate button.
+  const [sourceTouched, setSourceTouched] = useState(false);
 
   const parsedSource = useMemo(() => generateRequestSchema.safeParse({ sourceText }), [sourceText]);
   const sourceError = parsedSource.success ? undefined : parsedSource.error.issues[0]?.message;
@@ -108,6 +112,8 @@ export default function FlashcardGenerator() {
     setPhase("generating");
     setError(null);
     setElapsedSeconds(0);
+    setAcceptedCount(0);
+    setBatchSize(0);
 
     try {
       const data = await apiRequest<GenerateFlashcardsResponse>("/api/flashcards/generate", {
@@ -117,14 +123,15 @@ export default function FlashcardGenerator() {
       });
       const withIds = data.proposals.map((proposal) => ({ ...proposal, clientId: crypto.randomUUID() }));
       setProposals(withIds);
+      setBatchSize(withIds.length);
       setPhase("reviewing");
       if (data.droppedCount > 0) {
-        toast.info(`${withIds.length} flashcards generated — ${data.droppedCount} skipped due to formatting issues`);
+        toast.info(t.generate.generatedWithDroppedToast(withIds.length, data.droppedCount));
       } else {
-        toast.success(`${withIds.length} flashcards generated`);
+        toast.success(t.generate.generatedToast(withIds.length));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate flashcards");
+      setError(err instanceof Error ? err.message : t.generate.generateErrorToast);
       setPhase("error");
     }
   }
@@ -155,9 +162,10 @@ export default function FlashcardGenerator() {
         body: JSON.stringify({ question: proposal.question, answer: proposal.answer }),
       });
       setProposals((prev) => prev.filter((item) => item.clientId !== proposal.clientId));
-      toast.success("Flashcard added to your deck");
+      setAcceptedCount((n) => n + 1);
+      toast.success(t.generate.acceptedToast);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to accept flashcard");
+      toast.error(err instanceof Error ? err.message : t.generate.acceptErrorToast);
     } finally {
       setAcceptingIds((prev) => {
         const next = new Set(prev);
@@ -179,14 +187,14 @@ export default function FlashcardGenerator() {
 
   return (
     <>
-      <Card className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl">
+      <Card className="min-w-0 border-white/10 bg-white/8 text-white backdrop-blur-xl">
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="source-text" className="text-blue-100/80">
-                Source text
+                {t.generate.sourceLabel}
               </Label>
-              <span className={cn("text-xs", sourceText.length > SOURCE_TEXT_LIMIT ? "text-red-300" : "text-white/40")}>
+              <span className={cn("text-xs", sourceText.length > SOURCE_TEXT_LIMIT ? "text-red-300" : "text-white/55")}>
                 {sourceText.length}/{SOURCE_TEXT_LIMIT}
               </span>
             </div>
@@ -196,15 +204,20 @@ export default function FlashcardGenerator() {
               onChange={(event) => {
                 setSourceText(event.target.value);
               }}
-              placeholder="Paste the text you want to turn into flashcards..."
+              onBlur={() => {
+                setSourceTouched(true);
+              }}
+              placeholder={t.generate.sourcePlaceholder}
               rows={8}
               disabled={phase === "generating"}
               className={cn(
                 "border-white/20 bg-white/10 text-white placeholder:text-white/40 focus-visible:border-purple-400 focus-visible:ring-purple-400/40",
-                sourceError && "border-red-400/60 focus-visible:border-red-400 focus-visible:ring-red-400/40",
+                sourceTouched &&
+                  sourceError &&
+                  "border-red-400/60 focus-visible:border-red-400 focus-visible:ring-red-400/40",
               )}
             />
-            {sourceError && <p className="text-xs text-red-300">{sourceError}</p>}
+            {sourceTouched && sourceError && <p className="text-xs text-red-300">{sourceError}</p>}
           </div>
 
           <Button
@@ -215,12 +228,12 @@ export default function FlashcardGenerator() {
             {phase === "generating" ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Generating...
+                {t.generate.generatingButton}
               </>
             ) : (
               <>
                 <Sparkles className="size-4" />
-                {proposals.length > 0 || phase === "error" ? "Generate again" : "Generate"}
+                {proposals.length > 0 || phase === "error" ? t.generate.generateAgainButton : t.generate.generateButton}
               </>
             )}
           </Button>
@@ -243,7 +256,7 @@ export default function FlashcardGenerator() {
                 size="sm"
                 className="mt-2 text-red-200 hover:bg-red-500/20 hover:text-red-100"
               >
-                Try again
+                {t.common.tryAgain}
               </Button>
             </div>
           )}
@@ -253,10 +266,19 @@ export default function FlashcardGenerator() {
       {phase === "reviewing" && (
         <div className="mt-6 space-y-3">
           {proposals.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-              <p className="text-blue-100/70">
-                No flashcards survived validation from this text. Try generating again, or paste different text.
-              </p>
+            <div className="rounded-2xl border border-white/10 bg-white/8 p-8 text-center">
+              {batchSize === 0 ? (
+                <p className="text-blue-100/70">{t.generate.noneSurvived}</p>
+              ) : (
+                <>
+                  <p className="mb-4 text-blue-100/70">{t.generate.reviewComplete(acceptedCount)}</p>
+                  {acceptedCount > 0 && (
+                    <Button asChild className="bg-purple-600 text-white hover:bg-purple-500">
+                      <a href="/flashcards">{t.generate.goToFlashcards}</a>
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
@@ -265,7 +287,7 @@ export default function FlashcardGenerator() {
                 return (
                   <Card
                     key={proposal.clientId}
-                    className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl"
+                    className="min-w-0 border-white/10 bg-white/8 text-white backdrop-blur-xl"
                   >
                     <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
@@ -281,7 +303,7 @@ export default function FlashcardGenerator() {
                             setEditingProposal(proposal);
                           }}
                           className="text-white/70 hover:bg-white/10 hover:text-white"
-                          aria-label="Edit proposal"
+                          aria-label={t.generate.editAriaLabel}
                         >
                           <Pencil className="size-4" />
                         </Button>
@@ -293,7 +315,7 @@ export default function FlashcardGenerator() {
                             handleReject(proposal.clientId);
                           }}
                           className="text-white/70 hover:bg-red-500/20 hover:text-red-300"
-                          aria-label="Reject proposal"
+                          aria-label={t.generate.rejectAriaLabel}
                         >
                           <X className="size-4" />
                         </Button>
@@ -305,7 +327,7 @@ export default function FlashcardGenerator() {
                             void handleAccept(proposal);
                           }}
                           className="text-white/70 hover:bg-green-500/20 hover:text-green-300"
-                          aria-label="Accept proposal"
+                          aria-label={t.generate.acceptAriaLabel}
                         >
                           {accepting ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
                         </Button>
@@ -329,10 +351,8 @@ export default function FlashcardGenerator() {
       >
         <DialogContent className={dialogContentClass}>
           <DialogHeader>
-            <DialogTitle className="text-white">Edit proposal</DialogTitle>
-            <DialogDescription className="text-blue-100/70">
-              Update the question or answer before accepting.
-            </DialogDescription>
+            <DialogTitle className="text-white">{t.generate.editDialogTitle}</DialogTitle>
+            <DialogDescription className="text-blue-100/70">{t.generate.editDialogDescription}</DialogDescription>
           </DialogHeader>
           {editingProposal && (
             <FlashcardForm
@@ -348,18 +368,16 @@ export default function FlashcardGenerator() {
       </Dialog>
 
       <AlertDialog open={confirmRegenerateOpen} onOpenChange={setConfirmRegenerateOpen}>
-        <AlertDialogContent className="max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white">
+        <AlertDialogContent className="bg-surface max-h-[85vh] overflow-y-auto border-white/10 text-white">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Replace pending proposals?</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">{t.generate.replaceTitle}</AlertDialogTitle>
             <AlertDialogDescription className="text-blue-100/70">
-              You still have {proposals.length} unreviewed {proposals.length === 1 ? "proposal" : "proposals"}.
-              Generating again will discard {proposals.length === 1 ? "it" : "them"} and replace the list with new
-              proposals.
+              {t.generate.replaceDescription(proposals.length)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white">
-              Cancel
+              {t.common.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
@@ -368,7 +386,7 @@ export default function FlashcardGenerator() {
               }}
               className="bg-purple-600 text-white hover:bg-purple-500"
             >
-              Generate again
+              {t.generate.generateAgainButton}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

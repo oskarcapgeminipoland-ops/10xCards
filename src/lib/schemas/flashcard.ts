@@ -8,16 +8,17 @@
  */
 import { z } from "zod";
 import type { FlashcardInput } from "@/types";
+import { t } from "@/lib/i18n";
 
 export const flashcardInputSchema: z.ZodType<FlashcardInput> = z.object({
-  question: z.string().trim().min(1, "Question is required").max(500, "Question must be 500 characters or fewer"),
-  answer: z.string().trim().min(1, "Answer is required").max(1000, "Answer must be 1000 characters or fewer"),
+  question: z.string().trim().min(1, t.validation.questionRequired).max(500, t.validation.questionTooLong),
+  answer: z.string().trim().min(1, t.validation.answerRequired).max(1000, t.validation.answerTooLong),
 });
 
 export const flashcardListQuerySchema = z.object({
   search: z.string().trim().optional(),
   offset: z.coerce.number().int().nonnegative().default(0),
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 
 /**
@@ -27,9 +28,5 @@ export const flashcardListQuerySchema = z.object({
  * pattern as `flashcardInputSchema`.
  */
 export const generateRequestSchema = z.object({
-  sourceText: z
-    .string()
-    .trim()
-    .min(1, "Source text is required")
-    .max(5000, "Source text must be 5000 characters or fewer"),
+  sourceText: z.string().trim().min(1, t.validation.sourceTextRequired).max(5000, t.validation.sourceTextTooLong),
 });

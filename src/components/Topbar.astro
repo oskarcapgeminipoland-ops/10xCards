@@ -1,47 +1,64 @@
 ---
+import { t } from "@/lib/i18n";
+
 const { user } = Astro.locals;
+
+// Normalise away any trailing slash so `/flashcards/` still matches `/flashcards`.
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+const authedLinks = [
+  { href: "/settings", label: t.nav.settings },
+  { href: "/flashcards", label: t.nav.flashcards },
+  { href: "/flashcards/generate", label: t.nav.generate },
+  { href: "/flashcards/review", label: t.nav.review },
+];
+
+const guestLinks = [
+  { href: "/auth/signin", label: t.nav.signIn },
+  { href: "/auth/signup", label: t.nav.signUp },
+];
+
+const linkBase = "rounded-md px-2 py-1 transition-colors";
+const linkActive = "bg-white/10 font-medium text-white";
+const linkIdle = "text-purple-300 hover:bg-white/10 hover:text-purple-100";
 ---
 
 <div
-  class="mb-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
+  class="mb-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/8 px-4 py-2 text-sm text-white/80"
 >
   {
     user ? (
       <>
-        <span class="text-blue-100/70">{user.email}</span>
-        <div class="flex items-center gap-3">
-          <a href="/dashboard" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-            Dashboard
-          </a>
-          <a href="/flashcards" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-            Flashcards
-          </a>
-          <a
-            href="/flashcards/generate"
-            class="text-purple-300 transition-colors hover:text-purple-100 hover:underline"
-          >
-            Generate
-          </a>
-          <a href="/flashcards/review" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-            Review
-          </a>
+        <div class="ml-auto flex items-center gap-1">
+          {authedLinks.map((link) => (
+            <a
+              href={link.href}
+              aria-current={pathname === link.href ? "page" : undefined}
+              class:list={[linkBase, pathname === link.href ? linkActive : linkIdle]}
+            >
+              {link.label}
+            </a>
+          ))}
           <form method="POST" action="/api/auth/signout">
-            <button type="submit" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-              Sign out
+            <button type="submit" class:list={[linkBase, linkIdle]}>
+              {t.nav.signOut}
             </button>
           </form>
         </div>
       </>
     ) : (
       <>
-        <span class="text-blue-100/70">Not signed in</span>
-        <div class="flex gap-3">
-          <a href="/auth/signin" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-            Sign in
-          </a>
-          <a href="/auth/signup" class="text-purple-300 transition-colors hover:text-purple-100 hover:underline">
-            Sign up
-          </a>
+        <span class="text-blue-100/70">{t.nav.notSignedIn}</span>
+        <div class="flex items-center gap-1">
+          {guestLinks.map((link) => (
+            <a
+              href={link.href}
+              aria-current={pathname === link.href ? "page" : undefined}
+              class:list={[linkBase, pathname === link.href ? linkActive : linkIdle]}
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
       </>
     )
