@@ -46,6 +46,7 @@ A polish pass over the UI shipped in S-01–S-03. Six workstreams: (1) translate
 - No real settings features (password change, profile, delete account) — the "Konto" panel is e-mail + sign-out only.
 - No `og:image` asset creation — a text `<meta name="description">` and correct `<title>` only.
 - No changes to auth API behaviour, Supabase schema, RLS, or the review/SRS logic.
+- No mapping layer for Supabase auth provider error text — raw `error.message` from `signin.ts` / `signup.ts` (e.g. "Invalid login credentials") stays as returned (English). Everything the app itself renders is translated.
 
 ## Implementation Approach
 
@@ -91,7 +92,7 @@ Introduce a central Polish string catalog and replace every user-facing English 
 
 **Intent**: Translate the six user-visible validation messages in place (they flow to both the forms and API error payloads — intended).
 
-**Contract**: `:13-14` and `:33-34` message args of `.min(1, …)` / `.max(…, …)` on `flashcardInputSchema` and `generateRequestSchema` become Polish. Validation rules unchanged. Keep the strings identical to `t.validation.*` values (duplicated literal is acceptable here since the schema is imported server-side where the catalog import is also fine — prefer importing `t` if lint allows it in this module).
+**Contract**: `:13-14` and `:33-34` message args of `.min(1, …)` / `.max(…, …)` on `flashcardInputSchema` and `generateRequestSchema` reference `t.validation.*` (import `t` from `@/lib/i18n` into this module — both are plain `src/lib` TS, no edge/bundle blocker; the catalog is the single source, no duplicated literals). Validation rules unchanged.
 
 #### 4. Navigation
 
@@ -164,9 +165,9 @@ Gate validation-error rendering on a per-field `touched` flag in the two flashca
 
 **File**: `src/components/flashcards/FlashcardForm.tsx`
 
-**Intent**: Keep the live `zod.safeParse` (`:34-40`) for button-disable logic, but only render `questionError` / `answerError` (text + `fieldErrorClass` red border) when that field has been touched. Mirror `SignInForm`: touched set on `onBlur` and forced true for all fields on a blocked submit; a field returning to valid clears visually because the error is already recomputed live.
+**Intent**: Keep the live `zod.safeParse` (`:34-40`) for button-disable logic, but only render `questionError` / `answerError` (text + `fieldErrorClass` red border) when that field has been touched. `onBlur` is the sole trigger that marks a field touched; a field returning to valid clears visually because the error is already recomputed live. The submit button stays disabled while the form is invalid (`:117` unchanged), so there is no "reveal all errors on blocked submit" path — blur covers the empty-required-field case, which is what the bug is about. (This deliberately diverges from `SignInForm`, whose button is enabled and which reveals on submit.)
 
-**Contract**: New state `touched: { question: boolean; answer: boolean }` (or two booleans). `onBlur` handlers on the `<Textarea>`s set the flag. `handleSubmit` sets all flags true before the `parsed.success` check. Render conditions become `touched.question && questionError`. Submit button `disabled={!parsed.success || submitting}` (`:117`) unchanged.
+**Contract**: New state `touched: { question: boolean; answer: boolean }` (or two booleans). `onBlur` handlers on the `<Textarea>`s set the flag. Render conditions become `touched.question && questionError`. Submit button `disabled={!parsed.success || submitting}` (`:117`) unchanged; `handleSubmit` does not touch the flags.
 
 #### 2. AI generation form
 
@@ -174,7 +175,7 @@ Gate validation-error rendering on a per-field `touched` flag in the two flashca
 
 **Intent**: Same gate for the single `sourceText` field (`:87-88`, `:202-207`).
 
-**Contract**: New `sourceTouched` boolean; `onBlur` on the textarea sets it; the generate handler sets it true on a blocked attempt. Render condition `sourceTouched && sourceError`. Generate button `disabled` binding (`:212`) unchanged.
+**Contract**: New `sourceTouched` boolean; `onBlur` on the textarea sets it (sole trigger). Render condition `sourceTouched && sourceError`. Generate button `disabled` binding (`:212`) unchanged; the generate handler does not touch the flag.
 
 ### Success Criteria:
 
@@ -188,7 +189,7 @@ Gate validation-error rendering on a per-field `touched` flag in the two flashca
 - Opening "Nowa fiszka" shows no error text and no red border on either field
 - Opening `/flashcards/generate` shows no "wymagany" error and no red textarea
 - Blurring an empty required field shows its error; typing a valid value clears it
-- Clicking a disabled submit is a no-op; if the button is enabled logic changes, an invalid submit reveals all errors
+- The submit / generate button is disabled while the form is invalid and enables once all fields are valid
 - Editing an existing flashcard (pre-filled) still shows no error until a field is cleared
 
 **Implementation Note**: Pause for human confirmation before Phase 3.
@@ -217,7 +218,7 @@ Make the list endpoint return a total row count and default to 10 per page; drop
 
 **Intent**: Request an exact count and return it; fetch exactly one page instead of over-fetching by one.
 
-**Contract**: `:49` `.select("*")` → `.select("*", { count: "exact" })`. `:61` `.range(offset, offset + limit)` → `.range(offset, offset + limit - 1)`. `:67-73` replace the `hasNextPage` peek with `return { items: data.map(toFlashcard), total: count ?? 0 }`. Update `ListFlashcardsParams` doc/return type accordingly.
+**Contract**: `:49` `.select("*")` → `.select("*", { count: "exact" })`. `:61` `.range(offset, offset + limit)` → `.range(offset, offset + limit - 1)`. `:59` destructure becomes `const { data, error, count } = await query…`. `:67-73` replace the `hasNextPage` peek with `return { items: data.map(toFlashcard), total: count ?? 0 }`. Update `ListFlashcardsParams` doc/return type accordingly. Before relying on this: verify against the installed `supabase-js` version that `count` is populated on the resolved response with `.overrideTypes<FlashcardRow[], { merge: false }>()` still in the chain (`lessons.md`: verify library option shapes against the installed version); if `.overrideTypes()` strips the `count` type, move it off this query or cast the result.
 
 #### 3. Response type
 
@@ -274,9 +275,9 @@ Replace `FlashcardDeck`'s infinite scroll with numbered pagination + a page-size
 
 **File**: `src/components/flashcards/FlashcardDeck.tsx`
 
-**Intent**: Drop the `IntersectionObserver`, sentinel, `nextOffset`/`nextOffsetRef`, `loadingMore`, and `mode: "append"` machinery. Introduce `page` and `size` state initialised from `window.location.search` (`?page`, `?size`; defaults 1 and 10; `size` constrained to {10,20,50}). Fetch a single page: `offset = (page - 1) * size`, `limit = size`. On `page`/`size`/`debouncedSearch` change, refetch (replace, never append) and `history.replaceState` the new query string. Changing search or `size` resets `page` to 1. Compute `totalPages = Math.max(1, Math.ceil(total / size))` and clamp `page` into range after each fetch. Render `<Pagination>` below the list and a `<Select>` (labelled `t.deck.pageSize`) near the search box; hide pagination when `totalPages === 1`.
+**Intent**: Drop the `IntersectionObserver`, sentinel, `nextOffset`/`nextOffsetRef`, `loadingMore`, and `mode: "append"` machinery. Introduce `page` and `size` state initialised from `window.location.search` (`?page`, `?size`; defaults 1 and 10; `size` constrained to {10,20,50}). Fetch a single page: `offset = (page - 1) * size`, `limit = size`. On `page`/`size`/`debouncedSearch` change, refetch (replace, never append) and `history.replaceState` the new query string — `replaceState` (not `pushState`) is deliberate: list pagination is a view filter, not navigation history, so Back returns the user to wherever they came from rather than through every visited page. Changing search or `size` resets `page` to 1. Compute `totalPages = Math.max(1, Math.ceil(total / size))` and clamp `page` into range after each fetch. Render `<Pagination>` below the list and a `<Select>` (labelled `t.deck.pageSize`) near the search box; hide pagination when `totalPages === 1`.
 
-**Contract**: `PAGE_SIZE` const removed. `fetchPage` signature drops `mode`. New helper reads/writes the URL (inline or `src/components/hooks/usePaginationParams.ts` if it grows — `CLAUDE.md` says hooks live in `src/components/hooks/`). Local mutations (`handleCreate/Update/Delete`, `:158-205`) keep patching the current page's array; after a delete that empties the last page, refetch to pull the clamp/previous page. Skeleton (`:232-237`), empty (`:238-256`) and error states retained.
+**Contract**: `PAGE_SIZE` const removed. `fetchPage` signature drops `mode`. New helper reads/writes the URL (inline or `src/components/hooks/usePaginationParams.ts` if it grows — `CLAUDE.md` says hooks live in `src/components/hooks/`). Local mutations (`handleCreate/Update/Delete`, `:158-205`) keep patching the current page's array; after a delete that empties the last page, refetch to pull the clamp/previous page. Skeleton (`:232-237`), empty (`:238-256`) and error states retained. All new user-facing strings introduced here (pagination labels, page-size options) go in `src/lib/i18n.ts`, not inline.
 
 #### 3. Host page (no change expected)
 
@@ -313,7 +314,7 @@ Replace `FlashcardDeck`'s infinite scroll with numbered pagination + a page-size
 
 ### Overview
 
-Make `/` branded and auth-aware, and turn `/dashboard` into `/ustawienia` with real content.
+Make `/` branded and auth-aware, and turn `/dashboard` into `/ustawienia` with real content. All new user-facing copy introduced here goes through `src/lib/i18n.ts` (the Welcome rewrite and the settings panel add keys — they don't reintroduce inline literals).
 
 ### Changes Required:
 
@@ -365,6 +366,14 @@ Make `/` branded and auth-aware, and turn `/dashboard` into `/ustawienia` with r
 
 **Contract**: `:1` `# 10x Astro Starter` → `# 10xCards`; `:148` `/dashboard` → `/ustawienia`.
 
+#### 7. Favicon + starter asset
+
+**File**: `public/favicon.png`, `public/template.png`
+
+**Intent**: Replace the starter tab icon so the tab reads as 10xCards, and drop the unused starter screenshot.
+
+**Contract**: Swap `public/favicon.png` for a 10xCards icon (`Layout.astro:19` reference unchanged). Delete `public/template.png` (grep confirms it's unreferenced). If no icon asset is available at implementation time, leave `favicon.png` and add a one-line "favicon deferred" note here rather than shipping the starter icon silently.
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -372,6 +381,7 @@ Make `/` branded and auth-aware, and turn `/dashboard` into `/ustawienia` with r
 - Lint passes: `npm run lint`
 - Build passes: `npm run build`
 - `git grep -n "/dashboard" -- src` returns only the redirect stub and middleware entry
+- Re-run Phase 1's check 1.4 English-literal grep — clean after the Welcome / Topbar / settings rework and the Phase 4 pagination UI (this is the final English sweep)
 
 #### Manual Verification:
 
@@ -381,6 +391,7 @@ Make `/` branded and auth-aware, and turn `/dashboard` into `/ustawienia` with r
 - Visiting `/dashboard` (logged in) redirects to `/ustawienia`; visiting it logged out redirects to signin
 - "Wyloguj się" still logs the user out
 - Tab titles read `10xCards` / `Ustawienia` etc.
+- Browser tab shows the 10xCards favicon, not the starter icon (or the "favicon deferred" note applies); `public/template.png` is gone
 
 **Implementation Note**: Pause for human confirmation before Phase 6.
 
@@ -509,7 +520,7 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 - [ ] 2.3 "Nowa fiszka" dialog opens with no error text and no red border
 - [ ] 2.4 `/flashcards/generate` opens with no error and no red textarea
 - [ ] 2.5 Blurring an empty required field shows its error; typing a valid value clears it
-- [ ] 2.6 Blocked/invalid submit reveals all errors; disabled button is a no-op
+- [ ] 2.6 Submit / generate button is disabled while invalid, enables once all fields are valid
 - [ ] 2.7 Editing a pre-filled flashcard shows no error until a field is cleared
 
 ### Phase 3: Pagination — data layer
@@ -553,15 +564,17 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 - [ ] 5.1 Lint passes: `npm run lint`
 - [ ] 5.2 Build passes: `npm run build`
 - [ ] 5.3 `git grep -n "/dashboard" -- src` returns only the redirect stub and middleware entry
+- [ ] 5.4 Phase 1 check 1.4 English-literal grep re-run — clean after Phases 4 & 5 (final sweep)
 
 #### Manual
 
-- [ ] 5.4 Logged out, `/` shows the 10xCards hero (no "Astro Starter" text); CTAs go to signup/signin
-- [ ] 5.5 Logged in, `/` redirects to `/flashcards`
-- [ ] 5.6 Nav shows "Ustawienia"; `/ustawienia` has the e-mail + "Wyloguj się" panel
-- [ ] 5.7 `/dashboard` redirects to `/ustawienia` (logged in) / signin (logged out)
-- [ ] 5.8 "Wyloguj się" logs the user out
-- [ ] 5.9 Tab titles read `10xCards` / `Ustawienia`
+- [ ] 5.5 Logged out, `/` shows the 10xCards hero (no "Astro Starter" text); CTAs go to signup/signin
+- [ ] 5.6 Logged in, `/` redirects to `/flashcards`
+- [ ] 5.7 Nav shows "Ustawienia"; `/ustawienia` has the e-mail + "Wyloguj się" panel
+- [ ] 5.8 `/dashboard` redirects to `/ustawienia` (logged in) / signin (logged out)
+- [ ] 5.9 "Wyloguj się" logs the user out
+- [ ] 5.10 Tab titles read `10xCards` / `Ustawienia`
+- [ ] 5.11 Browser tab shows the 10xCards favicon (or "favicon deferred" note applies); `public/template.png` deleted
 
 ### Phase 6: Lighter background pass
 
