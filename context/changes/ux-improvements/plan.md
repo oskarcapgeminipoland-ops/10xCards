@@ -527,35 +527,35 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [x] 3.1 Lint passes: `npm run lint`
-- [x] 3.2 Build passes: `npm run build`
-- [x] 3.3 FSRS tests still pass: `npm run test`
-- [ ] 3.4 `git grep -n nextOffset -- src` returns nothing
+- [x] 3.1 Lint passes: `npm run lint` — d17a9cb
+- [x] 3.2 Build passes: `npm run build` — d17a9cb
+- [x] 3.3 FSRS tests still pass: `npm run test` — d17a9cb
+- [x] 3.4 `git grep -n nextOffset -- src` returns nothing (landed in Phase 4 — the infinite-scroll rewrite removed the stopgap `nextOffset` state)
 
 #### Manual
 
-- [x] 3.5 `GET /api/flashcards?limit=10&offset=0` returns `{ items: [≤10], total }`
-- [x] 3.6 `offset` beyond `total` returns `{ items: [], total }` without error
-- [x] 3.7 `limit=100` is rejected/clamped by the schema (max 50)
+- [x] 3.5 `GET /api/flashcards?limit=10&offset=0` returns `{ items: [≤10], total }` — d17a9cb
+- [x] 3.6 `offset` beyond `total` returns `{ items: [], total }` without error — d17a9cb
+- [x] 3.7 `limit=100` is rejected/clamped by the schema (max 50) — d17a9cb
 
 ### Phase 4: Pagination — UI
 
 #### Automated
 
-- [ ] 4.1 Lint passes: `npm run lint`
-- [ ] 4.2 Build passes: `npm run build`
-- [ ] 4.3 No `IntersectionObserver` / `loadingMore` / `nextOffset` left in `FlashcardDeck.tsx`
+- [x] 4.1 Lint passes: `npm run lint`
+- [x] 4.2 Build passes: `npm run build`
+- [x] 4.3 No `IntersectionObserver` / `loadingMore` / `nextOffset` left in `FlashcardDeck.tsx`
 
 #### Manual
 
-- [ ] 4.4 `/flashcards` shows 10 rows + numbered controls; ≤10-card deck shows no pagination
-- [ ] 4.5 Next/Prev and page numbers navigate; list replaces (no appending)
-- [ ] 4.6 Page-size selector offers 10 / 20 / 50; switching resets to page 1
-- [ ] 4.7 URL updates to `?page=&size=`; reloading restores the view; shared link works
-- [ ] 4.8 Search resets to page 1; clearing search returns to page 1 of full deck
-- [ ] 4.9 `?page=999` clamps to the last page
-- [ ] 4.10 Deleting the only card on the last page moves to the new last page
-- [ ] 4.11 Create/edit/delete still update the visible page with Polish toasts
+- [x] 4.4 `/flashcards` shows 10 rows + numbered controls; ≤10-card deck shows no pagination
+- [x] 4.5 Next/Prev and page numbers navigate; list replaces (no appending)
+- [x] 4.6 Page-size selector offers 10 / 20 / 50; switching resets to page 1
+- [x] 4.7 URL updates to `?page=&size=`; reloading restores the view; shared link works
+- [x] 4.8 Search resets to page 1; clearing search returns to page 1 of full deck
+- [x] 4.9 `?page=999` clamps to the last page
+- [x] 4.10 Deleting the only card on the last page moves to the new last page
+- [x] 4.11 Create/edit/delete still update the visible page with Polish toasts
 
 ### Phase 5: Landing redesign + settings rename
 

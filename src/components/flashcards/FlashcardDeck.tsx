@@ -6,15 +6,28 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FlashcardForm } from "@/components/flashcards/FlashcardForm";
 import { DeleteFlashcardDialog } from "@/components/flashcards/DeleteFlashcardDialog";
 import { t } from "@/lib/i18n";
 import type { ApiErrorResponse, Flashcard, FlashcardInput, FlashcardListResponse } from "@/types";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZES = [10, 20, 50] as const;
+type PageSize = (typeof PAGE_SIZES)[number];
+const DEFAULT_PAGE_SIZE: PageSize = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white";
+const paginationLinkClass = "cursor-pointer border-white/10 text-white hover:bg-white/10 hover:text-white";
+const paginationActiveClass = "border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white";
+const paginationDisabledClass = "pointer-events-none border-white/10 text-white/30";
 
 function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   return typeof value === "object" && value !== null && "error" in value && typeof value.error === "string";
@@ -41,16 +54,74 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
+/** Reads `?page` / `?size` from the current URL, falling back to the defaults. */
+function readListParams(): { page: number; size: PageSize } {
+  if (typeof window === "undefined") {
+    return { page: 1, size: DEFAULT_PAGE_SIZE };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const rawPage = Number(params.get("page"));
+  const rawSize = Number(params.get("size"));
+  const size = (PAGE_SIZES as readonly number[]).includes(rawSize) ? (rawSize as PageSize) : DEFAULT_PAGE_SIZE;
+  const page = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
+  return { page, size };
+}
+
+/** Mirrors `page` / `size` into the URL without adding a history entry — list
+ *  pagination is a view filter, not navigation, so Back stays useful. */
+function writeListParams(page: number, size: PageSize) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  params.set("page", String(page));
+  params.set("size", String(size));
+  window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+}
+
+/** The shareable URL for a given page — every page has one, so the pagination
+ *  links carry a real `href` (middle-click / open-in-new-tab work) and the
+ *  click handler just intercepts it for a client-side fetch. */
+function pageHref(targetPage: number, currentSize: PageSize, search: string): string {
+  const params = new URLSearchParams();
+  params.set("page", String(targetPage));
+  params.set("size", String(currentSize));
+  if (search) {
+    params.set("search", search);
+  }
+  return `?${params.toString()}`;
+}
+
+/** First page, last page, current page and its neighbours, with `"ellipsis"`
+ *  markers filling the gaps. */
+function pageWindow(current: number, totalPages: number): (number | "ellipsis")[] {
+  const wanted = [1, totalPages, current, current - 1, current + 1];
+  const shown = [...new Set(wanted)].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+
+  const result: (number | "ellipsis")[] = [];
+  let previous = 0;
+  for (const p of shown) {
+    if (p - previous > 1) {
+      result.push("ellipsis");
+    }
+    result.push(p);
+    previous = p;
+  }
+  return result;
+}
+
 /**
- * The main flashcard-deck island: owns list state, debounced search,
- * pagination fetch-on-scroll, and orchestrates the create/edit dialog,
- * delete confirmation, and toasts.
+ * The main flashcard-deck island: owns list state, debounced search, and
+ * numbered pagination (`page` / `size` mirrored in the URL), and orchestrates
+ * the create/edit dialog, delete confirmation, and toasts.
  */
 export default function FlashcardDeck() {
+  const initial = readListParams();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(initial.page);
+  const [size, setSize] = useState<PageSize>(initial.size);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [searchInput, setSearchInput] = useState("");
@@ -61,20 +132,9 @@ export default function FlashcardDeck() {
   const [deletingFlashcard, setDeletingFlashcard] = useState<Flashcard | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const nextOffsetRef = useRef<number | null>(null);
-  const loadingRef = useRef(true);
-  const loadingMoreRef = useRef(false);
+  const prevSearchRef = useRef(debouncedSearch);
 
-  useEffect(() => {
-    nextOffsetRef.current = nextOffset;
-  }, [nextOffset]);
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
-  useEffect(() => {
-    loadingMoreRef.current = loadingMore;
-  }, [loadingMore]);
+  const totalPages = Math.max(1, Math.ceil(total / size));
 
   // Debounce the search box before it drives any fetch.
   useEffect(() => {
@@ -86,79 +146,67 @@ export default function FlashcardDeck() {
     };
   }, [searchInput]);
 
-  async function fetchPage(offset: number, search: string, mode: "reset" | "append", signal: AbortSignal) {
-    if (mode === "reset") {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
+  // A new search term jumps back to page 1 — but not on the initial mount,
+  // where the page comes from the URL.
+  useEffect(() => {
+    if (prevSearchRef.current !== debouncedSearch) {
+      prevSearchRef.current = debouncedSearch;
+      setPage(1);
     }
-    setError(null);
+  }, [debouncedSearch]);
 
-    try {
-      const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
-      if (search) {
-        params.set("search", search);
-      }
-      const data = await apiRequest<FlashcardListResponse>(`/api/flashcards?${params.toString()}`, { signal });
-      setFlashcards((prev) => (mode === "reset" ? data.items : [...prev, ...data.items]));
-      // Stopgap until Phase 4 replaces infinite scroll with numbered
-      // pagination: derive the next offset from the new `total` instead of
-      // the removed `nextOffset` field.
-      const loadedCount = mode === "reset" ? data.items.length : offset + data.items.length;
-      setNextOffset(loadedCount < data.total ? loadedCount : null);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") {
-        return;
-      }
-      setError(err instanceof Error ? err.message : t.deck.loadError);
-    } finally {
-      if (mode === "reset") {
-        setLoading(false);
-      } else {
-        setLoadingMore(false);
-      }
-    }
-  }
+  // Keep the URL in sync with the current view.
+  useEffect(() => {
+    writeListParams(page, size);
+  }, [page, size]);
 
-  // Search changes (including the initial mount) reset to page 0 and cancel
-  // any in-flight request so a slow earlier response can't overwrite a
-  // faster later one.
+  // Single source of truth for the visible page: refetch whenever page, size
+  // or the (debounced) search term changes, cancelling any in-flight request
+  // so a slow earlier response can't overwrite a faster later one.
   useEffect(() => {
     abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data-fetching effect: loading/error state must flip synchronously so the UI reflects the fetch that's starting (see plan's "Search + pagination must reset and cancel together").
-    void fetchPage(0, debouncedSearch, "reset", controller.signal);
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({ limit: String(size), offset: String((page - 1) * size) });
+        if (debouncedSearch) {
+          params.set("search", debouncedSearch);
+        }
+        const data = await apiRequest<FlashcardListResponse>(`/api/flashcards?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        setFlashcards(data.items);
+        setTotal(data.total);
+        // Clamp a `?page=` that overshoots the deck (deletions, hand-edited
+        // URL): drop to the last real page, which refetches through this
+        // same effect.
+        const lastPage = Math.max(1, Math.ceil(data.total / size));
+        if (page > lastPage) {
+          setPage(lastPage);
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
+        setError(err instanceof Error ? err.message : t.deck.loadError);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void load();
     return () => {
       controller.abort();
     };
-  }, [debouncedSearch]);
+  }, [page, size, debouncedSearch]);
 
-  // Infinite scroll: load the next page once the sentinel enters the viewport.
-  useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry.isIntersecting && nextOffsetRef.current !== null && !loadingRef.current && !loadingMoreRef.current) {
-          abortControllerRef.current?.abort();
-          const controller = new AbortController();
-          abortControllerRef.current = controller;
-          void fetchPage(nextOffsetRef.current, debouncedSearch, "append", controller.signal);
-        }
-      },
-      { rootMargin: "200px" },
-    );
-
-    observer.observe(node);
-    return () => {
-      observer.disconnect();
-    };
-  }, [debouncedSearch]);
+  function goToPage(next: number) {
+    setPage(Math.min(Math.max(1, next), totalPages));
+  }
 
   async function handleCreate(input: FlashcardInput) {
     try {
@@ -168,6 +216,7 @@ export default function FlashcardDeck() {
         body: JSON.stringify(input),
       });
       setFlashcards((prev) => [created, ...prev]);
+      setTotal((prev) => prev + 1);
       toast.success(t.deck.createdToast);
       setCreateOpen(false);
     } catch (err) {
@@ -195,14 +244,23 @@ export default function FlashcardDeck() {
   async function handleDelete(id: string) {
     try {
       await apiRequest(`/api/flashcards/${id}`, { method: "DELETE" });
-      setFlashcards((prev) => prev.filter((flashcard) => flashcard.id !== id));
-      toast.success(t.deck.deletedToast);
+      const remaining = flashcards.filter((flashcard) => flashcard.id !== id);
+      setFlashcards(remaining);
+      setTotal((prev) => Math.max(0, prev - 1));
       setDeletingFlashcard(null);
+      toast.success(t.deck.deletedToast);
+      // Deleted the last card on a non-first page → step back a page (the
+      // fetch effect pulls the now-current page).
+      if (remaining.length === 0 && page > 1) {
+        setPage((prev) => prev - 1);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t.deck.deleteErrorToast);
       throw err;
     }
   }
+
+  const pages = pageWindow(page, totalPages);
 
   return (
     <>
@@ -219,15 +277,45 @@ export default function FlashcardDeck() {
             className="border-white/20 bg-white/10 pl-10 text-white placeholder:text-white/40 focus-visible:border-purple-400 focus-visible:ring-purple-400/40"
           />
         </div>
-        <Button
-          onClick={() => {
-            setCreateOpen(true);
-          }}
-          className="gap-2 bg-purple-600 text-white hover:bg-purple-500"
-        >
-          <Plus className="size-4" />
-          {t.deck.newButton}
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="hidden text-sm whitespace-nowrap text-blue-100/70 sm:inline">{t.deck.pageSizeLabel}</span>
+            <Select
+              value={String(size)}
+              onValueChange={(value) => {
+                setSize(Number(value) as PageSize);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger
+                aria-label={t.deck.pageSizeLabel}
+                className="w-[4.5rem] border-white/20 bg-white/10 text-white"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="border-white/10 bg-[#0f1529] text-white">
+                {PAGE_SIZES.map((option) => (
+                  <SelectItem
+                    key={option}
+                    value={String(option)}
+                    className="text-white focus:bg-white/10 focus:text-white"
+                  >
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={() => {
+              setCreateOpen(true);
+            }}
+            className="gap-2 bg-purple-600 text-white hover:bg-purple-500"
+          >
+            <Plus className="size-4" />
+            {t.deck.newButton}
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -298,12 +386,63 @@ export default function FlashcardDeck() {
         </div>
       )}
 
-      <div ref={sentinelRef} className="h-1" />
+      {!loading && totalPages > 1 && (
+        <Pagination className="mt-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationLink
+                href={pageHref(page - 1, size, debouncedSearch)}
+                aria-label={t.deck.prevPage}
+                aria-disabled={page === 1}
+                className={page === 1 ? paginationDisabledClass : paginationLinkClass}
+                onClick={(event) => {
+                  event.preventDefault();
+                  goToPage(page - 1);
+                }}
+              >
+                {t.deck.prevPage}
+              </PaginationLink>
+            </PaginationItem>
 
-      {loadingMore && (
-        <div className="mt-3">
-          <Skeleton className="h-24 w-full rounded-xl bg-white/10" />
-        </div>
+            {pages.map((entry, index) =>
+              entry === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis className="text-white/60" />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={entry}>
+                  <PaginationLink
+                    href={pageHref(entry, size, debouncedSearch)}
+                    aria-label={t.deck.pageAria(entry)}
+                    isActive={entry === page}
+                    className={entry === page ? paginationActiveClass : paginationLinkClass}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      goToPage(entry);
+                    }}
+                  >
+                    {entry}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
+
+            <PaginationItem>
+              <PaginationLink
+                href={pageHref(page + 1, size, debouncedSearch)}
+                aria-label={t.deck.nextPage}
+                aria-disabled={page === totalPages}
+                className={page === totalPages ? paginationDisabledClass : paginationLinkClass}
+                onClick={(event) => {
+                  event.preventDefault();
+                  goToPage(page + 1);
+                }}
+              >
+                {t.deck.nextPage}
+              </PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
