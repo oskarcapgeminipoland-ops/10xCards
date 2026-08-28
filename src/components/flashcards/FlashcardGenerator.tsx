@@ -32,7 +32,7 @@ const SOURCE_TEXT_LIMIT = 5000;
 
 const STATUS_MESSAGES = t.generate.statusMessages;
 
-const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white";
+const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-surface text-white";
 
 type ProposalWithId = FlashcardInput & { clientId: string };
 type Phase = "idle" | "generating" | "reviewing" | "error";
@@ -178,14 +178,14 @@ export default function FlashcardGenerator() {
 
   return (
     <>
-      <Card className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl">
+      <Card className="min-w-0 border-white/10 bg-white/8 text-white backdrop-blur-xl">
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="source-text" className="text-blue-100/80">
                 {t.generate.sourceLabel}
               </Label>
-              <span className={cn("text-xs", sourceText.length > SOURCE_TEXT_LIMIT ? "text-red-300" : "text-white/40")}>
+              <span className={cn("text-xs", sourceText.length > SOURCE_TEXT_LIMIT ? "text-red-300" : "text-white/55")}>
                 {sourceText.length}/{SOURCE_TEXT_LIMIT}
               </span>
             </div>
@@ -257,7 +257,7 @@ export default function FlashcardGenerator() {
       {phase === "reviewing" && (
         <div className="mt-6 space-y-3">
           {proposals.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+            <div className="rounded-2xl border border-white/10 bg-white/8 p-8 text-center">
               <p className="text-blue-100/70">{t.generate.noneSurvived}</p>
             </div>
           ) : (
@@ -267,7 +267,7 @@ export default function FlashcardGenerator() {
                 return (
                   <Card
                     key={proposal.clientId}
-                    className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl"
+                    className="min-w-0 border-white/10 bg-white/8 text-white backdrop-blur-xl"
                   >
                     <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
@@ -348,7 +348,7 @@ export default function FlashcardGenerator() {
       </Dialog>
 
       <AlertDialog open={confirmRegenerateOpen} onOpenChange={setConfirmRegenerateOpen}>
-        <AlertDialogContent className="max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white">
+        <AlertDialogContent className="bg-surface max-h-[85vh] overflow-y-auto border-white/10 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">{t.generate.replaceTitle}</AlertDialogTitle>
             <AlertDialogDescription className="text-blue-100/70">

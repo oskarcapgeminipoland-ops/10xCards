@@ -68,12 +68,12 @@ const steps = [
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {
           steps.map((step, index) => (
-            <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <div class="rounded-xl border border-white/10 bg-white/8 p-6 backdrop-blur-xl">
               <div class="mb-4 flex size-9 items-center justify-center rounded-full bg-purple-500/20 text-sm font-semibold text-purple-200">
                 {index + 1}
               </div>
               <h3 class="mb-2 text-lg font-semibold text-white">{step.title}</h3>
-              <p class="text-sm leading-relaxed text-blue-100/60">{step.body}</p>
+              <p class="text-sm leading-relaxed text-blue-100/75">{step.body}</p>
             </div>
           ))
         }

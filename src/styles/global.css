@@ -111,7 +111,13 @@
 }
 
 @utility bg-cosmic {
-  background-image: linear-gradient(to bottom, #0a0e1a, #0f1529, #0a0e1a);
+  background-image: linear-gradient(to bottom, #1b1e30, #262a45, #1b1e30);
+}
+
+/* Raised surface (dialogs, popovers, selects) — a step lighter than the
+   `bg-cosmic` page so panels read as floating above it. */
+@utility bg-surface {
+  background-color: #30334d;
 }
 
 @layer base {

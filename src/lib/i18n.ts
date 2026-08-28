@@ -111,8 +111,6 @@ export const t = {
 
   flashcardsPage: {
     heading: "Twoje fiszki",
-    reviewLink: "Powtórka",
-    generateLink: "Generuj z AI",
   },
 
   generatePage: {

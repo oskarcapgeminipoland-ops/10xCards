@@ -44,7 +44,7 @@ export function DeleteFlashcardDialog({ flashcard, onConfirm, onCancel }: Delete
         }
       }}
     >
-      <AlertDialogContent className="max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white">
+      <AlertDialogContent className="bg-surface max-h-[85vh] overflow-y-auto border-white/10 text-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-white">
             <Trash2 className="size-5 text-red-300" aria-hidden="true" />

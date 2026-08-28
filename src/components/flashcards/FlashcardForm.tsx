@@ -68,7 +68,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           <Label htmlFor="flashcard-question" className="text-blue-100/80">
             {t.form.questionLabel}
           </Label>
-          <span className={cn("text-xs", question.length > QUESTION_LIMIT ? "text-red-300" : "text-white/40")}>
+          <span className={cn("text-xs", question.length > QUESTION_LIMIT ? "text-red-300" : "text-white/55")}>
             {question.length}/{QUESTION_LIMIT}
           </span>
         </div>
@@ -93,7 +93,7 @@ export function FlashcardForm({ mode, initialValue, onSubmit, onCancel }: Flashc
           <Label htmlFor="flashcard-answer" className="text-blue-100/80">
             {t.form.answerLabel}
           </Label>
-          <span className={cn("text-xs", answer.length > ANSWER_LIMIT ? "text-red-300" : "text-white/40")}>
+          <span className={cn("text-xs", answer.length > ANSWER_LIMIT ? "text-red-300" : "text-white/55")}>
             {answer.length}/{ANSWER_LIMIT}
           </span>
         </div>

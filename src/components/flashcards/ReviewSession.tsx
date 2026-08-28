@@ -163,7 +163,7 @@ export default function ReviewSession() {
 
   if (phase === "empty-no-cards") {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
+      <div className="rounded-2xl border border-white/10 bg-white/8 p-12 text-center">
         <p className="mb-4 text-blue-100/70">{t.review.emptyNoCards}</p>
         <Button asChild className="gap-2 bg-purple-600 text-white hover:bg-purple-500">
           <a href="/flashcards/generate">{t.review.generateWithAi}</a>
@@ -174,7 +174,7 @@ export default function ReviewSession() {
 
   if (phase === "empty-none-due") {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
+      <div className="rounded-2xl border border-white/10 bg-white/8 p-12 text-center">
         <p className="mb-4 text-blue-100/70">{t.review.emptyNoneDue}</p>
         <Button asChild variant="ghost" className="text-purple-300 hover:bg-white/10 hover:text-purple-100">
           <a href="/flashcards">{t.review.backToFlashcards}</a>
@@ -185,11 +185,11 @@ export default function ReviewSession() {
 
   if (phase === "complete") {
     return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+      <div className="rounded-2xl border border-white/10 bg-white/8 p-8 text-center">
         <h2 className="mb-4 text-xl font-semibold text-white">{t.review.sessionComplete}</h2>
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {RATINGS.map((rating) => (
-            <div key={rating} className="rounded-xl border border-white/10 bg-white/5 px-3 py-4">
+            <div key={rating} className="rounded-xl border border-white/10 bg-white/8 px-3 py-4">
               <p className="text-2xl font-bold text-white">{tally[rating]}</p>
               <p className="text-xs text-blue-100/70">{RATING_LABELS[rating]}</p>
             </div>
@@ -210,8 +210,8 @@ export default function ReviewSession() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-blue-100/60">{t.review.cardCounter(currentIndex + 1, items.length)}</p>
-      <Card className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl">
+      <p className="text-sm text-blue-100/75">{t.review.cardCounter(currentIndex + 1, items.length)}</p>
+      <Card className="min-w-0 border-white/10 bg-white/8 text-white backdrop-blur-xl">
         <CardContent className="space-y-4">
           <p className="text-lg font-medium break-words text-white">{currentItem.flashcard.question}</p>
           {revealed ? (

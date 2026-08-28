@@ -15,7 +15,7 @@ const error = Astro.url.searchParams.get("error");
         {t.auth.signUpHeading}
       </h1>
       <SignUpForm serverError={error} client:load />
-      <p class="mt-4 text-center text-sm text-blue-100/60">
+      <p class="mt-4 text-center text-sm text-blue-100/75">
         {t.auth.haveAccount}
         <a href="/auth/signin" class="text-purple-300 hover:underline">{t.nav.signIn}</a>
       </p>

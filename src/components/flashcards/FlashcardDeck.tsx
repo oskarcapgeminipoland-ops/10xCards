@@ -24,7 +24,7 @@ type PageSize = (typeof PAGE_SIZES)[number];
 const DEFAULT_PAGE_SIZE: PageSize = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
-const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-[#0f1529] text-white";
+const dialogContentClass = "max-h-[85vh] overflow-y-auto border-white/10 bg-surface text-white";
 const paginationLinkClass = "cursor-pointer border-white/10 text-white hover:bg-white/10 hover:text-white";
 const paginationActiveClass = "border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white";
 const paginationDisabledClass = "pointer-events-none border-white/10 text-white/30";
@@ -266,7 +266,7 @@ export default function FlashcardDeck() {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 sm:max-w-sm">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/55" />
           <Input
             value={searchInput}
             onChange={(event) => {
@@ -293,7 +293,7 @@ export default function FlashcardDeck() {
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="border-white/10 bg-[#0f1529] text-white">
+              <SelectContent className="bg-surface border-white/10 text-white">
                 {PAGE_SIZES.map((option) => (
                   <SelectItem
                     key={option}
@@ -329,7 +329,7 @@ export default function FlashcardDeck() {
           ))}
         </div>
       ) : flashcards.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
+        <div className="rounded-2xl border border-white/10 bg-white/8 p-12 text-center">
           {debouncedSearch ? (
             <p className="text-blue-100/70">{t.deck.emptyNoMatch(debouncedSearch)}</p>
           ) : (
@@ -350,7 +350,7 @@ export default function FlashcardDeck() {
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {flashcards.map((flashcard) => (
-            <Card key={flashcard.id} className="min-w-0 border-white/10 bg-white/5 text-white backdrop-blur-xl">
+            <Card key={flashcard.id} className="min-w-0 border-white/10 bg-white/8 text-white backdrop-blur-xl">
               <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium break-words text-white">{flashcard.question}</p>

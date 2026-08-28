@@ -561,32 +561,32 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [x] 5.1 Lint passes: `npm run lint` (adaptation: `no-misused-promises` off for `**/*.astro` — the rule crashes on a top-level `return Astro.redirect()`)
-- [x] 5.2 Build passes: `npm run build`
-- [x] 5.3 `git grep -n "/dashboard" -- src` returns only the redirect stub and middleware entry (verified via plain grep — `git grep` with a lone leading `/` is mangled by MSYS on this Windows box)
-- [x] 5.4 Phase 1 check 1.4 English-literal grep re-run — clean after Phases 4 & 5 (only the pre-existing `AlertDialogPrimitive.Cancel` shadcn API-name exception)
+- [x] 5.1 Lint passes: `npm run lint` (adaptation: `no-misused-promises` off for `**/*.astro` — the rule crashes on a top-level `return Astro.redirect()`) — 31bacaf
+- [x] 5.2 Build passes: `npm run build` — 31bacaf
+- [x] 5.3 `git grep -n "/dashboard" -- src` returns only the redirect stub and middleware entry (verified via plain grep — `git grep` with a lone leading `/` is mangled by MSYS on this Windows box) — 31bacaf
+- [x] 5.4 Phase 1 check 1.4 English-literal grep re-run — clean after Phases 4 & 5 (only the pre-existing `AlertDialogPrimitive.Cancel` shadcn API-name exception) — 31bacaf
 
 #### Manual
 
-- [x] 5.5 Logged out, `/` shows the 10xCards hero (no "Astro Starter" text); CTAs go to signup/signin
-- [x] 5.6 Logged in, `/` redirects to `/flashcards`
-- [x] 5.7 Nav shows "Ustawienia"; `/ustawienia` has the e-mail + "Wyloguj się" panel
-- [x] 5.8 `/dashboard` redirects to `/ustawienia` (logged in) / signin (logged out)
-- [x] 5.9 "Wyloguj się" logs the user out
-- [x] 5.10 Tab titles read `10xCards` / `Ustawienia`
-- [x] 5.11 Browser tab shows the 10xCards favicon (procedurally generated card-stack mark, not deferred); `public/template.png` deleted
+- [x] 5.5 Logged out, `/` shows the 10xCards hero (no "Astro Starter" text); CTAs go to signup/signin — 31bacaf
+- [x] 5.6 Logged in, `/` redirects to `/flashcards` — 31bacaf
+- [x] 5.7 Nav shows "Ustawienia"; `/ustawienia` has the e-mail + "Wyloguj się" panel — 31bacaf
+- [x] 5.8 `/dashboard` redirects to `/ustawienia` (logged in) / signin (logged out) — 31bacaf
+- [x] 5.9 "Wyloguj się" logs the user out — 31bacaf
+- [x] 5.10 Tab titles read `10xCards` / `Ustawienia` — 31bacaf
+- [x] 5.11 Browser tab shows the 10xCards favicon (procedurally generated card-stack mark, not deferred); `public/template.png` deleted — 31bacaf
 
 ### Phase 6: Lighter background pass
 
 #### Automated
 
-- [ ] 6.1 Lint passes: `npm run lint`
-- [ ] 6.2 Build passes: `npm run build`
-- [ ] 6.3 FSRS tests still pass: `npm run test`
+- [x] 6.1 Lint passes: `npm run lint`
+- [x] 6.2 Build passes: `npm run build`
+- [x] 6.3 FSRS tests still pass: `npm run test`
 
 #### Manual
 
-- [ ] 6.4 Every page shows the lighter background with no illegible / washed-out text
-- [ ] 6.5 Dialogs are visually distinct from the page behind them
-- [ ] 6.6 Body-text contrast ≥ 4.5:1 on 2–3 representative screens
-- [ ] 6.7 No regression to focus rings / hover states
+- [x] 6.4 Every page shows the lighter background with no illegible / washed-out text
+- [x] 6.5 Dialogs are visually distinct from the page behind them
+- [x] 6.6 Body-text contrast ≥ 4.5:1 on 2–3 representative screens
+- [x] 6.7 No regression to focus rings / hover states
