@@ -1,6 +1,6 @@
 # 10xCards
 
-A modern, opinionated starter template for building fast, accessible web applications.
+An AI-assisted spaced-repetition flashcard app: paste text, get LLM-generated flashcard proposals, accept/edit/reject them, and review with an FSRS scheduler.
 
 ## Tech Stack
 

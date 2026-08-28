@@ -4,8 +4,17 @@
 - **Plan**: context/changes/ux-improvements/plan.md
 - **Scope**: Phases 1–6 of 6 (full plan)
 - **Date**: 2026-08-28
-- **Verdict**: NEEDS ATTENTION
+- **Verdict**: NEEDS ATTENTION → triaged 2026-08-28 (5 fixed, 1 skipped)
 - **Findings**: 0 critical, 2 warnings, 4 observations
+
+## Triage outcome (2026-08-28)
+
+- **F1** FIXED (Fix A) — plan Phase 6 addendum note added
+- **F2** FIXED — `search` dropped from `pageHref` / `writeListParams`
+- **F3** FIXED — pagination a11y strings localised; unused `PaginationPrevious`/`Next` removed
+- **F4** FIXED — roadmap S-04 → `done`; README tagline rewritten
+- **F5** FIXED — clamp no longer flashes the empty state
+- **F6** SKIPPED — pre-existing `tsc` noise, not CI-gated; separate cleanup
 
 ## Verdicts
 
@@ -60,7 +69,7 @@
   - Tradeoff: Reinstates nav duplication the implementer intentionally cleared.
   - Confidence: MED — trivial revert of the `index.astro` hunk.
   - Blind spot: None significant.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — plan Phase 6 gained a "#### 4. Header CTA cleanup (addendum)" note recording the removal.
 
 ### F2 — Shareable pagination URLs advertise a `search` filter they don't apply
 
@@ -70,7 +79,7 @@
 - **Location**: src/components/flashcards/FlashcardDeck.tsx:85-93 (`pageHref`), :58-68 (`readListParams`), :72-80 (`writeListParams`)
 - **Detail**: `pageHref()` embeds `search=<term>` into every pagination link's real `href` (its docstring calls this "the shareable URL for a given page"). But `readListParams()` parses only `page` / `size`, and `searchInput` always initialises to `""`. Opening a pagination link in a new tab — or reloading — while a search is active therefore renders page N of the **unfiltered** deck, and `writeListParams` then re-persists the now-misleading `search=…` in the address bar. The stated "every page has a shareable URL" feature is half-implemented. Against the *written* plan contract this is within bounds (Desired End State promised only `?page`/`?size` round-trip, and "same page" = same page number, which holds), so the defect is the internal inconsistency, not a missed requirement. Related, lower-probability: `apiRequest` awaits `res.json()`, which `controller.abort()` does not cancel, so a response resolving in the gap between abort and the superseding fetch rejecting can still call `setState` — pre-existing exposure, not a regression.
 - **Fix**: Drop `search` from `pageHref` / `writeListParams` so the URL never promises a filter it won't apply (smaller, matches plan scope) — or parse `search` in `readListParams` and seed `searchInput` + `debouncedSearch` from it for a true round-trip. Optionally add a request-generation guard in `load()` (`if (abortControllerRef.current !== controller) return` before each `setState`).
-- **Decision**: PENDING
+- **Decision**: FIXED via "drop search param" — `pageHref` no longer builds `search=`, its signature dropped the arg (3 call sites updated), and `writeListParams` now `params.delete("search")`. Lint clean. The optional `res.json()` race guard was not applied (pre-existing, out of scope).
 
 ### F3 — shadcn generated primitives: untranslated a11y strings + non-canonical Select default
 
@@ -80,7 +89,7 @@
 - **Location**: src/components/ui/pagination.tsx:10 (`aria-label="pagination"`, rendered), :49-76 (unused `PaginationPrevious`/`PaginationNext` with hardcoded "Previous"/"Next"/"Go to previous page"), :77-88 (`PaginationEllipsis` `<span className="sr-only">More pages</span>`, rendered at FlashcardDeck.tsx:410); src/components/ui/select.tsx:48
 - **Detail**: The `<nav aria-label="pagination">` landmark label and the "More pages" sr-only text render on the fully translated `/flashcards` page in English. The plan said "No manual edits beyond what generation produces" for these files, so the implementer followed *that* instruction — but "Every user-facing string renders in Polish" (Desired End State) reasonably includes assistive-tech text. Separately, `SelectContent` defaults `position="item-aligned"` where canonical shadcn uses `"popper"` — functional, but it leaves the `position === "popper"` style branches as dead code.
 - **Fix**: Pass a Polish `aria-label` where `<Pagination>` is instantiated in `FlashcardDeck`; localise (or call-site-override) `PaginationEllipsis`'s sr-only text; delete the unused `PaginationPrevious`/`PaginationNext` exports. Leave `select.tsx` as-is or reset its default to `"popper"`.
-- **Decision**: PENDING
+- **Decision**: FIXED — `t.deck.paginationLabel` ("Paginacja") passed at the `<Pagination>` call site; `PaginationEllipsis` sr-only → "Więcej stron"; `PaginationPrevious`/`PaginationNext` + their chevron imports deleted from `pagination.tsx`. `select.tsx` left as-is. Lint + build clean.
 
 ### F4 — Roadmap slice + README brand line lag the shipped state
 
@@ -90,7 +99,7 @@
 - **Location**: context/foundation/roadmap.md:39 (S-04 row = `in-progress`), :141 (Stream status = `in-progress`); README.md:3
 - **Detail**: `change.md` is correctly `status: implemented` and all six phases + the epilogue commit landed, but the roadmap table row and stream status for S-04 still read `in-progress`. Normally flipped to `done` at archive time, so not blocking — flagged so `/10x-archive` picks it up. Separately, `README.md:3` still reads "A modern, opinionated starter template for building fast, accessible web applications." directly under the new `# 10xCards` heading (outside the plan's `:1` / `:148` line-scope, now self-contradictory).
 - **Fix**: At archive, set S-04 to `done` in `roadmap.md` (row + Stream status); replace the stale README tagline with a 10xCards one-liner.
-- **Decision**: PENDING
+- **Decision**: FIXED — roadmap.md S-04 "At a glance" row + Stream status both flipped to `done`; README.md:3 rewritten to a 10xCards one-liner.
 
 ### F5 — Brief empty-state flash when the initial `?page=` overshoots the deck
 
@@ -100,7 +109,7 @@
 - **Location**: src/components/flashcards/FlashcardDeck.tsx:171-199 (load effect)
 - **Detail**: On an out-of-range initial page the 416 branch returns `{ items: [], total }`, `finally` sets `loading = false`, and React paints one frame with `loading === false && flashcards.length === 0` — the "Nie masz jeszcze żadnych fiszek" empty state — before the clamp (`page > lastPage → setPage(lastPage)`) triggers the refetch that flips `loading` back to true. Only hits hand-edited / stale deep links.
 - **Fix**: Guard the empty-state branch on `page <= totalPages`, or skip `setLoading(false)` when the response triggers a clamp.
-- **Decision**: PENDING
+- **Decision**: FIXED — `load()` sets a local `clamping` flag before `setPage(lastPage)`; the `finally` now skips `setLoading(false)` while a clamp refetch is pending, so the skeleton holds instead of flashing the empty state.
 
 ### F6 — Pre-existing `tsc` errors in the services layer (not introduced here)
 
@@ -110,4 +119,4 @@
 - **Location**: src/lib/services/flashcards.ts:121, :151; src/lib/services/flashcard-reviews.ts:145
 - **Detail**: `tsc --noEmit` reports errors on `createFlashcard` / `createAiFlashcard` (`.single().overrideTypes<FlashcardRow, { merge: false }>()` unions with postgrest-js's "Type mismatch" sentinel) and in `flashcard-reviews.ts` (not in this changeset). These lines are **unchanged** by S-04, and the new array-typed `listFlashcards().overrideTypes<FlashcardRow[], …>()` adds no new error. Project gates are `eslint` + `astro build` (both pass), not `tsc`, so this is not an S-04 regression — noting it for a separate cleanup.
 - **Fix**: Separate task — narrow or cast the `.single().overrideTypes()` return in the two `create*` helpers; out of scope for this change's archive.
-- **Decision**: PENDING
+- **Decision**: SKIPPED — pre-existing, not gated by CI (eslint + build), left for a separate cleanup task.

@@ -429,6 +429,12 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 **Contract**: Targeted className adjustments only (raise opacity or shift to a token). Body text must meet WCAG AA (4.5:1); large headings/secondary text at least AA-large (3:1).
 
+#### 4. Header CTA cleanup (addendum — landed in Phase 6, recorded post-hoc)
+
+**File**: `src/pages/flashcards/index.astro`
+
+**Note**: The translated "Powtórka" / "Generuj z AI" header buttons (added in Phase 1 §7) were removed here — they duplicated the Topbar nav (`Fiszki / Generuj / Powtórka`); the `t.flashcardsPage.reviewLink` / `generateLink` catalog keys were dropped with them. This is a small layout change beyond the "className adjustments only" contract of item 3, recorded during `/10x-impl-review` (finding F1).
+
 ### Success Criteria:
 
 #### Automated Verification:

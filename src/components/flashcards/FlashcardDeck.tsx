@@ -76,19 +76,17 @@ function writeListParams(page: number, size: PageSize) {
   const params = new URLSearchParams(window.location.search);
   params.set("page", String(page));
   params.set("size", String(size));
+  params.delete("search"); // list search is React-only state; don't advertise it in the URL
   window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
 }
 
-/** The shareable URL for a given page — every page has one, so the pagination
- *  links carry a real `href` (middle-click / open-in-new-tab work) and the
- *  click handler just intercepts it for a client-side fetch. */
-function pageHref(targetPage: number, currentSize: PageSize, search: string): string {
+/** The shareable URL for a given page — page/size only (search is not URL
+ *  state), so the pagination links carry a real `href` (middle-click /
+ *  open-in-new-tab work) and the click handler intercepts it for a fetch. */
+function pageHref(targetPage: number, currentSize: PageSize): string {
   const params = new URLSearchParams();
   params.set("page", String(targetPage));
   params.set("size", String(currentSize));
-  if (search) {
-    params.set("search", search);
-  }
   return `?${params.toString()}`;
 }
 
@@ -171,6 +169,7 @@ export default function FlashcardDeck() {
     async function load() {
       setLoading(true);
       setError(null);
+      let clamping = false;
       try {
         const params = new URLSearchParams({ limit: String(size), offset: String((page - 1) * size) });
         if (debouncedSearch) {
@@ -186,6 +185,7 @@ export default function FlashcardDeck() {
         // same effect.
         const lastPage = Math.max(1, Math.ceil(data.total / size));
         if (page > lastPage) {
+          clamping = true; // a refetch on the clamped page is coming — keep the skeleton, don't flash empty
           setPage(lastPage);
         }
       } catch (err) {
@@ -194,7 +194,9 @@ export default function FlashcardDeck() {
         }
         setError(err instanceof Error ? err.message : t.deck.loadError);
       } finally {
-        setLoading(false);
+        if (!clamping) {
+          setLoading(false);
+        }
       }
     }
 
@@ -387,11 +389,11 @@ export default function FlashcardDeck() {
       )}
 
       {!loading && totalPages > 1 && (
-        <Pagination className="mt-6">
+        <Pagination className="mt-6" aria-label={t.deck.paginationLabel}>
           <PaginationContent>
             <PaginationItem>
               <PaginationLink
-                href={pageHref(page - 1, size, debouncedSearch)}
+                href={pageHref(page - 1, size)}
                 aria-label={t.deck.prevPage}
                 aria-disabled={page === 1}
                 className={page === 1 ? paginationDisabledClass : paginationLinkClass}
@@ -412,7 +414,7 @@ export default function FlashcardDeck() {
               ) : (
                 <PaginationItem key={entry}>
                   <PaginationLink
-                    href={pageHref(entry, size, debouncedSearch)}
+                    href={pageHref(entry, size)}
                     aria-label={t.deck.pageAria(entry)}
                     isActive={entry === page}
                     className={entry === page ? paginationActiveClass : paginationLinkClass}
@@ -429,7 +431,7 @@ export default function FlashcardDeck() {
 
             <PaginationItem>
               <PaginationLink
-                href={pageHref(page + 1, size, debouncedSearch)}
+                href={pageHref(page + 1, size)}
                 aria-label={t.deck.nextPage}
                 aria-disabled={page === totalPages}
                 className={page === totalPages ? paginationDisabledClass : paginationLinkClass}

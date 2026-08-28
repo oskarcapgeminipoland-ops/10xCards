@@ -145,6 +145,7 @@ export const t = {
     prevPage: "Poprzednia",
     nextPage: "Następna",
     pageAria: (n: number) => `Strona ${n}`,
+    paginationLabel: "Paginacja",
   },
 
   form: {
