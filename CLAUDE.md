@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-10xCards — an AI-assisted spaced-repetition flashcard app (paste text → LLM-generated flashcard proposals → accept/edit/reject → spaced-repetition review). Currently at the bootstrapped-starter stage: only auth (email/password via Supabase) is implemented; flashcard generation and review are not yet built. Full scope: `context/foundation/prd.md`.
+10xCards — an AI-assisted spaced-repetition flashcard app (paste text → LLM-generated flashcard proposals → accept/edit/reject → spaced-repetition review). Auth (email/password via Supabase), manual + AI-assisted flashcard management, and FSRS-based review sessions (`ts-fsrs`) are implemented. Full scope: `context/foundation/prd.md`.
 
 ## Commands
 
@@ -13,8 +13,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run preview` — preview production build
 - `npm run lint` / `npm run lint:fix` — ESLint with type-checked rules
 - `npm run format` — Prettier (prettier-plugin-astro + prettier-plugin-tailwindcss)
+- `npm run test` — Vitest, scoped to `src/lib/fsrs/` (FSRS scheduling logic only; no Astro/React test integration is configured)
 
-No test runner is configured yet. Pre-commit hooks (husky + lint-staged) run `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
+Pre-commit hooks (husky + lint-staged) run `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 
 ## Architecture
 

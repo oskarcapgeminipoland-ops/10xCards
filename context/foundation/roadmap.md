@@ -3,7 +3,7 @@ project: "10xCards"
 version: 1
 status: draft
 created: 2026-08-22
-updated: 2026-08-26
+updated: 2026-08-28
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -34,7 +34,7 @@ Osoba samodzielnie ucząca się języka obcego rezygnuje ze spaced repetition, b
 | F-01 | flashcard-data-foundation | (foundation) schemat + migracja + RLS dla encji fiszki (per-user izolacja) | — | Success Criteria (Guardrails), Access Control, FR-001, FR-002 | done |
 | F-02 | ai-provider-integration | (foundation) minimalne okablowanie dostawcy AI (OpenRouter): klucz API, sekrety, cienki klient | — | FR-003, FR-004 | done |
 | S-01 | ai-flashcard-generation | wkleja tekst, generuje propozycje fiszek przez AI, akceptuje/edytuje/odrzuca, zaakceptowane widzi w swoim zestawie | F-01, F-02 | US-01, FR-003, FR-004, FR-006 | done |
-| S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | proposed |
+| S-02 | first-review-session | rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu | S-01, F-01 | FR-009 | done |
 | S-03 | manual-flashcard-management | ręcznie tworzy, edytuje i usuwa (z potwierdzeniem) fiszkę niezależnie od AI | F-01 | FR-005, FR-007, FR-008 | done |
 
 ## Streams
@@ -111,7 +111,7 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **Unknowns:**
   - Który gotowy algorytm/biblioteka SRS zostanie użyta (PRD potwierdza tylko decyzję buy-vs-build, nie nazywa konkretnej biblioteki) — Owner: team (do rozstrzygnięcia w `/10x-plan`, nie tutaj). Block: no.
 - **Risk:** Zsekwencjonowany bezpośrednio po S-01 na wyraźną prośbę użytkownika — chodzi o zwalidowanie pełnej pierwszej pętli (generuj → zapisz → powtórz) jednym ciągiem, nie tylko połowy hipotezy. Wybór konkretnej biblioteki SRS jest świadomie odłożony do planowania.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: Użytkownik ręcznie zarządza swoimi fiszkami
 
@@ -157,3 +157,4 @@ Stan repo na `2026-08-22` (auto-zbadany + potwierdzony przez użytkownika). Foun
 - **F-02: (foundation) skonfigurowany dostawca AI (OpenRouter) — klucz API zarządzany jako sekret (`wrangler secret put`), minimalny klient/wrapper gotowy do wywołania z kodu generowania.** — Archived 2026-08-23 → `context/archive/2026-08-23-ai-provider-integration/`. Lesson: —.
 - **S-03: ręcznie tworzy fiszkę niezależnie od AI, edytuje istniejącą fiszkę oraz usuwa fiszkę po potwierdzeniu w dialogu.** — Archived 2026-08-25 → `context/archive/2026-08-23-manual-flashcard-management/`. Lesson: —.
 - **S-01: wkleja tekst źródłowy, prosi o wygenerowanie fiszek przez AI, przegląda listę propozycji i dla każdej akceptuje / edytuje przed akceptacją / odrzuca — zaakceptowane fiszki natychmiast widzi w swoim zestawie.** — Archived 2026-08-26 → `context/archive/2026-08-25-ai-flashcard-generation/`. Lesson: —.
+- **S-02: rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu do powtórzenia.** — Archived 2026-08-28 → `context/archive/2026-08-27-first-review-session/`. Lesson: —.
