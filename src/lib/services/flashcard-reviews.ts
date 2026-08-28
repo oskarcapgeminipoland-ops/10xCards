@@ -17,7 +17,6 @@
  * target_scale.data_volume: small).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ApiError } from "@/lib/api-helpers";
 import { applyRating, fromCard, previewAll, stateLabel, toCard, type ReviewStateRow } from "@/lib/fsrs/scheduler";
 import type { Flashcard, ReviewCard, ReviewRating, ReviewSessionResponse, SubmitReviewResponse } from "@/types";
 
@@ -47,13 +46,16 @@ function toFlashcard(row: FlashcardRow): Flashcard {
   };
 }
 
-export async function getReviewSession(supabase: SupabaseClient, userId: string): Promise<ReviewSessionResponse> {
+// `_userId` is unused here: RLS already scopes all three queries below to the
+// caller. Kept in the signature for parity with `submitReview` and in case a
+// future query needs it explicitly.
+export async function getReviewSession(supabase: SupabaseClient, _userId: string): Promise<ReviewSessionResponse> {
   const now = new Date();
 
   const [flashcardsResult, stateResult, hasAnyResult] = await Promise.all([
     supabase.from("flashcards").select("*").overrideTypes<FlashcardRow[], { merge: false }>(),
     supabase.from("flashcard_review_state").select("*").overrideTypes<ReviewStateRow[], { merge: false }>(),
-    supabase.from("flashcards").select("id").eq("user_id", userId).limit(1),
+    supabase.from("flashcards").select("id").limit(1),
   ]);
 
   if (flashcardsResult.error) {
@@ -105,20 +107,30 @@ export async function submitReview(
   userId: string,
   flashcardId: string,
   rating: ReviewRating,
-): Promise<SubmitReviewResponse> {
+): Promise<SubmitReviewResponse | null> {
   // Ownership check is load-bearing, not incidental: flashcard_review_state's
   // RLS only validates the *new row's own* user_id on insert, never what
   // flashcard_id points to. Without this pre-check a caller could create a
   // review-state row against another user's flashcard (see the plan's
-  // Critical Implementation Details).
+  // Critical Implementation Details). Not-found vs not-owned are
+  // indistinguishable by design (matches `updateFlashcard`/`deleteFlashcard`
+  // in `flashcards.ts`): both return `null` here, and the caller maps that
+  // to `404`.
   const { data: owned, error: ownedError } = await supabase.from("flashcards").select("id").eq("id", flashcardId);
   if (ownedError) {
     throw ownedError;
   }
   if (owned.length === 0) {
-    throw new ApiError("Not found", 404);
+    return null;
   }
 
+  // Accepted risk: this read-modify-write is not atomic. Two concurrent
+  // submits for the same flashcard (double-tab, retried request, second
+  // device) could both read this row before either upsert lands, and the
+  // second write would silently overwrite the first's scheduling effect.
+  // Not closed here — the UI already serializes the common case by
+  // disabling rating buttons for the duration of a submit; a true fix would
+  // need a DB-side atomic compute-and-write (e.g. an RPC function).
   const { data: existing, error: existingError } = await supabase
     .from("flashcard_review_state")
     .select("*")

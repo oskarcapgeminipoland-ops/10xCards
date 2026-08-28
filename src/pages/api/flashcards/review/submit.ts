@@ -8,7 +8,7 @@
  * A `flashcardId` that doesn't resolve to a row owned by the caller
  * surfaces as `404` — via `submitReview`'s own explicit ownership check,
  * not RLS alone — matching the not-found-vs-not-owned convention in
- * `[id].ts`.
+ * `[id].ts` (service returns `null`, route maps it to `jsonError`).
  */
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
@@ -41,5 +41,9 @@ export const POST: APIRoute = withApiErrorHandling(async (context) => {
   }
 
   const result = await submitReview(supabase, user.id, parsed.data.flashcardId, parsed.data.rating);
+  if (!result) {
+    return jsonError("Flashcard not found", 404);
+  }
+
   return Response.json(result satisfies SubmitReviewResponse);
 });

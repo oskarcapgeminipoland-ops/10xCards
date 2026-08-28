@@ -36,3 +36,10 @@
 - **Problem**: Escapowane były tylko wildcardy SQL-LIKE (%, _), ale nie znaki specjalne samego mini-języka filtrów PostgREST (, . ( )), przez co wyszukiwana fraza mogła wstrzyknąć dodatkowe warunki do zapytania. RLS ograniczał skutek do własnych wierszy użytkownika (brak wycieku między kontami), ale to nadal był niezaufany input trafiający do ręcznie budowanego stringa zapytania.
 - **Rule**: Przy interpolowaniu inputu użytkownika do dowolnego stringa filtra Supabase/PostgREST (.or(), .filter() itp.) escapuj wszystkie metaznaki tego mini-języka (, . ( ) oraz \), nie tylko te istotne dla bieżącego przypadku — albo unikaj interpolacji stringów na rzecz łańcuchowanych wywołań .ilike()/.eq(), które przyjmują wartość jako parametr.
 - **Applies to**: plan, implement, impl-review
+
+## Zweryfikuj opcje konfiguracyjne biblioteki wobec zainstalowanej wersji, zanim trafią do planu jako stała
+
+- **Context**: src/lib/fsrs/scheduler.ts:31, src/lib/fsrs/scheduler.test.ts:64-81 — plan zakładał `fsrs({ request_retention: 0.9 })`, implementacja dodała `enable_short_term: false`.
+- **Problem**: Plan opisał stałą konfigurację `ts-fsrs` bez uwzględnienia pola `learning_steps`, którego znaczenie ujawniło się dopiero przy pracy z realnym typem `Card` zainstalowanej wersji. Poprawka w implementacji (`enable_short_term: false`) była zasadna, ale miała efekt uboczny: `State.Relearning` stał się praktycznie nieosiągalny, przez co zaplanowany test ("powtórzone Again przesuwa stan w stronę Relearning") przestał sprawdzać to, co plan zakładał — zamiast tego asercja została po cichu zamieniona na proxy (lapses/stability).
+- **Rule**: Zanim plan zakotwiczy konkretne opcje konfiguracyjne zewnętrznej biblioteki jako stałą, zweryfikuj je wobec API/typów faktycznie zainstalowanej wersji (nie tylko dokumentacji). Jeśli implementacja mimo to musi odejść od zaplanowanej konfiguracji, zaktualizuj też testy/asercje, które plan napisał pod starą konfigurację — nie zostawiaj asercji cicho osłabionej bez odnotowania tego w planie lub testach.
+- **Applies to**: plan, implement, impl-review

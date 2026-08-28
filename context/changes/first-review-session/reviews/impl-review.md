@@ -43,7 +43,7 @@
   - Tradeoff: Meaningfully more code — a new DB function or CAS logic, more surface to test and maintain, arguably premature at this app's stated "small" scale.
   - Confidence: MED — technically sound, but cost may outweigh actual risk here.
   - Blind spot: None significant.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — added a comment at flashcard-reviews.ts:122 documenting the accepted race window.
 
 ### F2 — `getReviewSession` query mechanism diverges from the plan's LEFT JOIN design
 
@@ -62,7 +62,7 @@
   - Tradeoff: New DB function to write and test; moves logic out of the TS layer the unit tests currently mirror.
   - Confidence: MED — straightforward SQL, but introduces an RPC surface this project hasn't used elsewhere.
   - Blind spot: None significant — this is exactly what the plan called for.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — updated plan.md's Performance Considerations section to describe the actual two-query implementation and the unused index.
 
 ### F3 — Roadmap S-02 left at "in-progress" despite full implementation
 
@@ -72,7 +72,7 @@
 - **Location**: context/foundation/roadmap.md (S-02 row + status line)
 - **Detail**: `context/foundation/roadmap.md` was flipped from `planning` to `in-progress` for S-02 in the Phase 1 commit, but never updated to `done` even though all 4 phases are complete and `change.md` already shows `status: implemented`. Every other completed slice (F-01, F-02, S-01, S-03) shows `done` in the same table.
 - **Fix**: Update `context/foundation/roadmap.md`'s S-02 table row and status line to `done`, matching the existing convention for completed slices.
-- **Decision**: PENDING
+- **Decision**: FIXED — updated both the S-02 table row and the S-02 status line in roadmap.md to `done`.
 
 ### F4 — FSRS `enable_short_term: false` config drift leaves `Relearning` untested
 
@@ -82,7 +82,7 @@
 - **Location**: src/lib/fsrs/scheduler.ts:31, src/lib/fsrs/scheduler.test.ts:64-81
 - **Detail**: The plan specified `fsrs({ request_retention: 0.9 })`; the implementation adds `enable_short_term: false`, disclosed in the module's top comment as a correction for a `learning_steps` field the plan's `ts-fsrs` research missed. Consequence (also disclosed): `State.Relearning` becomes practically unreachable, so the Phase 2 test case that was supposed to assert "a repeated `Again` rating ... moves state toward `Relearning`" instead only asserts `lapses` increments and `stability` shrinks — the literal planned assertion isn't covered.
 - **Fix**: Accept as-is — the deviation fixes a real gap in the plan's research and doesn't affect user-facing correctness at this app's day-granularity scope; the in-code comment already documents the decision as the record.
-- **Decision**: PENDING
+- **Decision**: FIXED + ACCEPTED-AS-RULE: "Verify third-party library config options against the installed version's actual API/types before committing a plan's config to a fixed literal — and if implementation later needs to diverge, update any test assertions the plan wrote against the old config." (added to lessons.md). Also updated plan.md's Phase 2 contract (scheduler config + test description) to match the actual `enable_short_term: false` behavior.
 
 ### F5 — Redundant ownership filter contradicts the file's own documented convention
 
@@ -92,7 +92,7 @@
 - **Location**: src/lib/services/flashcard-reviews.ts:56
 - **Detail**: The file's header comment states "no app-level ownership filtering on reads — RLS is the boundary," matching `flashcards.ts`'s convention, and the two main queries omit any `user_id` filter accordingly. The `hasAnyResult` query on the same line block adds `.eq("user_id", userId)` — harmless (it only narrows an already-RLS-scoped read) but inconsistent with the stated rule.
 - **Fix**: Drop the `.eq("user_id", userId)` from the `hasAnyResult` query for consistency with the file's own documented convention.
-- **Decision**: PENDING
+- **Decision**: FIXED — dropped the filter at flashcard-reviews.ts:56; renamed the now-unused `userId` param to `_userId` with a comment explaining RLS already scopes the query (kept for signature parity with `submitReview`). Lint and tests re-verified green.
 
 ### F6 — Not-found signaling diverges from `flashcards.ts` convention
 
@@ -102,4 +102,4 @@
 - **Location**: src/lib/services/flashcard-reviews.ts:119
 - **Detail**: `submitReview` signals not-found by throwing `ApiError("Not found", 404)` directly from the service layer. The existing analog (`updateFlashcard`/`deleteFlashcard` in `flashcards.ts` + `src/pages/api/flashcards/[id].ts:38-41`) instead returns `null`/`false` from the service and lets the route map that to `jsonError("Flashcard not found", 404)`. Both are supported by `api-helpers.ts`, so this isn't a bug, but it's a genuine layering-style divergence, and the message text also differs ("Not found" vs. "Flashcard not found").
 - **Fix**: Optional — align with the `flashcards.ts` convention (service returns `null`, route maps to `jsonError`) if this RPC-route pattern will be reused; otherwise accept as a one-off, since `ApiError` is a supported, centrally-caught mechanism.
-- **Decision**: PENDING
+- **Decision**: FIXED — `submitReview` now returns `null` instead of throwing `ApiError`; `submit.ts` maps `null` to `jsonError("Flashcard not found", 404)`, matching `flashcards.ts`'s convention exactly. Updated plan.md's Phase 3 contract text to match. Lint, tests, and build re-verified green.

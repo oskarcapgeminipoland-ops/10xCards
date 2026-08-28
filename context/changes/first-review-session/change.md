@@ -9,6 +9,8 @@ archived_at: null
 
 ## Notes
 
+Review triage complete: F1-F6 all resolved (2 fixed-as-documented, 3 code-fixed, 1 fixed + recorded as lesson). See `reviews/impl-review.md`.
+
 Roadmap: S-02 (`context/foundation/roadmap.md`). Outcome: użytkownik rozpoczyna sesję powtórek, w której gotowy algorytm SRS dobiera fiszki z jego zestawu do powtórzenia. Prerequisites: S-01, F-01 (oba `done`). PRD refs: FR-009.
 
 Biblioteka SRS rozstrzygnięta przez użytkownika poza planowaniem roadmapy: **ts-fsrs**.
