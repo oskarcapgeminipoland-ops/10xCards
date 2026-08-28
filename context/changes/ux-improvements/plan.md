@@ -530,7 +530,7 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 - [x] 3.1 Lint passes: `npm run lint` — d17a9cb
 - [x] 3.2 Build passes: `npm run build` — d17a9cb
 - [x] 3.3 FSRS tests still pass: `npm run test` — d17a9cb
-- [x] 3.4 `git grep -n nextOffset -- src` returns nothing (landed in Phase 4 — the infinite-scroll rewrite removed the stopgap `nextOffset` state)
+- [x] 3.4 `git grep -n nextOffset -- src` returns nothing (landed in Phase 4 — the infinite-scroll rewrite removed the stopgap `nextOffset` state) — fe43966
 
 #### Manual
 
@@ -542,39 +542,39 @@ Recolour the app to a lighter, warmer ground and fix any contrast regressions.
 
 #### Automated
 
-- [x] 4.1 Lint passes: `npm run lint`
-- [x] 4.2 Build passes: `npm run build`
-- [x] 4.3 No `IntersectionObserver` / `loadingMore` / `nextOffset` left in `FlashcardDeck.tsx`
+- [x] 4.1 Lint passes: `npm run lint` — fe43966
+- [x] 4.2 Build passes: `npm run build` — fe43966
+- [x] 4.3 No `IntersectionObserver` / `loadingMore` / `nextOffset` left in `FlashcardDeck.tsx` — fe43966
 
 #### Manual
 
-- [x] 4.4 `/flashcards` shows 10 rows + numbered controls; ≤10-card deck shows no pagination
-- [x] 4.5 Next/Prev and page numbers navigate; list replaces (no appending)
-- [x] 4.6 Page-size selector offers 10 / 20 / 50; switching resets to page 1
-- [x] 4.7 URL updates to `?page=&size=`; reloading restores the view; shared link works
-- [x] 4.8 Search resets to page 1; clearing search returns to page 1 of full deck
-- [x] 4.9 `?page=999` clamps to the last page
-- [x] 4.10 Deleting the only card on the last page moves to the new last page
-- [x] 4.11 Create/edit/delete still update the visible page with Polish toasts
+- [x] 4.4 `/flashcards` shows 10 rows + numbered controls; ≤10-card deck shows no pagination — fe43966
+- [x] 4.5 Next/Prev and page numbers navigate; list replaces (no appending) — fe43966
+- [x] 4.6 Page-size selector offers 10 / 20 / 50; switching resets to page 1 — fe43966
+- [x] 4.7 URL updates to `?page=&size=`; reloading restores the view; shared link works — fe43966
+- [x] 4.8 Search resets to page 1; clearing search returns to page 1 of full deck — fe43966
+- [x] 4.9 `?page=999` clamps to the last page — fe43966
+- [x] 4.10 Deleting the only card on the last page moves to the new last page — fe43966
+- [x] 4.11 Create/edit/delete still update the visible page with Polish toasts — fe43966
 
 ### Phase 5: Landing redesign + settings rename
 
 #### Automated
 
-- [ ] 5.1 Lint passes: `npm run lint`
-- [ ] 5.2 Build passes: `npm run build`
-- [ ] 5.3 `git grep -n "/dashboard" -- src` returns only the redirect stub and middleware entry
-- [ ] 5.4 Phase 1 check 1.4 English-literal grep re-run — clean after Phases 4 & 5 (final sweep)
+- [x] 5.1 Lint passes: `npm run lint` (adaptation: `no-misused-promises` off for `**/*.astro` — the rule crashes on a top-level `return Astro.redirect()`)
+- [x] 5.2 Build passes: `npm run build`
+- [x] 5.3 `git grep -n "/dashboard" -- src` returns only the redirect stub and middleware entry (verified via plain grep — `git grep` with a lone leading `/` is mangled by MSYS on this Windows box)
+- [x] 5.4 Phase 1 check 1.4 English-literal grep re-run — clean after Phases 4 & 5 (only the pre-existing `AlertDialogPrimitive.Cancel` shadcn API-name exception)
 
 #### Manual
 
-- [ ] 5.5 Logged out, `/` shows the 10xCards hero (no "Astro Starter" text); CTAs go to signup/signin
-- [ ] 5.6 Logged in, `/` redirects to `/flashcards`
-- [ ] 5.7 Nav shows "Ustawienia"; `/ustawienia` has the e-mail + "Wyloguj się" panel
-- [ ] 5.8 `/dashboard` redirects to `/ustawienia` (logged in) / signin (logged out)
-- [ ] 5.9 "Wyloguj się" logs the user out
-- [ ] 5.10 Tab titles read `10xCards` / `Ustawienia`
-- [ ] 5.11 Browser tab shows the 10xCards favicon (or "favicon deferred" note applies); `public/template.png` deleted
+- [x] 5.5 Logged out, `/` shows the 10xCards hero (no "Astro Starter" text); CTAs go to signup/signin
+- [x] 5.6 Logged in, `/` redirects to `/flashcards`
+- [x] 5.7 Nav shows "Ustawienia"; `/ustawienia` has the e-mail + "Wyloguj się" panel
+- [x] 5.8 `/dashboard` redirects to `/ustawienia` (logged in) / signin (logged out)
+- [x] 5.9 "Wyloguj się" logs the user out
+- [x] 5.10 Tab titles read `10xCards` / `Ustawienia`
+- [x] 5.11 Browser tab shows the 10xCards favicon (procedurally generated card-stack mark, not deferred); `public/template.png` deleted
 
 ### Phase 6: Lighter background pass
 

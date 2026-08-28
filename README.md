@@ -1,6 +1,4 @@
-# 10x Astro Starter
-
-![](./public/template.png)
+# 10xCards
 
 A modern, opinionated starter template for building fast, accessible web applications.
 
@@ -145,7 +143,8 @@ Users can then sign in immediately after sign-up without clicking a confirmation
 | `/auth/signin`        | Email/password sign-in form                                             |
 | `/auth/signup`        | Email/password sign-up form                                             |
 | `/auth/confirm-email` | Post-signup "check your inbox" page                                     |
-| `/dashboard`          | Example protected page (redirects to `/auth/signin` if unauthenticated) |
+| `/ustawienia`         | Account settings — signed-in e-mail + sign-out (redirects to `/auth/signin` if unauthenticated) |
+| `/dashboard`          | Legacy alias — 302-redirects to `/ustawienia`                          |
 
 Route protection is handled in `src/middleware.ts`. Add paths to the `PROTECTED_ROUTES` array there to require authentication.
 
