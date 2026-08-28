@@ -1,6 +1,6 @@
 ---
-// Legacy route — the settings page moved to /ustawienia. Kept so old links
+// Legacy route — the settings page moved to /settings. Kept so old links
 // and bookmarks still resolve; middleware still auth-gates /dashboard so a
 // logged-out visit lands on sign-in rather than following the redirect.
-return Astro.redirect("/ustawienia");
+return Astro.redirect("/settings");
 ---

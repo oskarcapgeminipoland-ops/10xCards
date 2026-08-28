@@ -75,6 +75,34 @@ export const t = {
     accountTitle: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
+    daysLearning: (n: number) =>
+      n === 0 ? "Konto założone dziś" : `Uczysz się od ${n} ${plural(n, ["dnia", "dni", "dni"])}`,
+
+    statsHeading: "Twoja nauka w liczbach",
+    statsUnavailable: "Nie udało się wczytać statystyk.",
+    emptyStats: "Nie masz jeszcze żadnych fiszek — statystyki pojawią się, gdy zaczniesz.",
+    emptyStatsCta: "Wygeneruj pierwsze z AI",
+
+    progressLabel: (reviewed: number, total: number) =>
+      `Przejrzano ${reviewed} z ${total} ${plural(total, ["fiszki", "fiszek", "fiszek"])}`,
+    stateBreakdown: (learning: number, review: number, relearning: number) =>
+      `Uczę się: ${learning} · Powtórka: ${review} · Douczam: ${relearning}`,
+
+    statTotal: "Wszystkie fiszki",
+    statTotalHint: (ai: number, manual: number) => `${ai} z AI · ${manual} ręcznie`,
+    statDue: "Do powtórki teraz",
+    statDueClear: "wszystko na bieżąco 🎉",
+    statDueNext: (days: number) =>
+      days === 0 ? "część już zaległa" : `następna za ${days} ${plural(days, ["dzień", "dni", "dni"])}`,
+    statReps: "Powtórki łącznie",
+    statRepsHint: (lapses: number) =>
+      lapses === 0 ? "bez wpadek" : `${lapses} ${plural(lapses, ["wpadka", "wpadki", "wpadek"])}`,
+    statWeek: "Nowe w tym tygodniu",
+    statWeekHint: "z ostatnich 7 dni",
+
+    lastReviewAgo: (n: number) =>
+      n === 0 ? "Ostatnia powtórka: dziś" : `Ostatnia powtórka: ${n} ${plural(n, ["dzień", "dni", "dni"])} temu`,
+    noReviewsYet: "Jeszcze bez powtórek — zacznij sesję z listy fiszek.",
   },
 
   auth: {

@@ -350,6 +350,8 @@ Make `/` branded and auth-aware, and turn `/dashboard` into `/ustawienia` with r
 
 **Contract**: `<Layout title={t.meta.titleSettings}>`; reuse the existing `bg-cosmic` wrapper + `<Topbar />` + card markup from `dashboard.astro`, translated. Sign-out `<form method="POST" action="/api/auth/signout">` preserved.
 
+**Post-review addendum (2026-08-28)**: the route was renamed `/ustawienia` → **`/settings`** so URL paths stay English across the app (nav label stays Polish "Ustawienia"). File is `src/pages/settings.astro`; `PROTECTED_ROUTES`, the `Topbar` link, `dashboard.astro`'s redirect target, and the README route table were updated to match. A learning-stats panel (`src/lib/services/account-stats.ts` + `src/components/settings/StatCard.astro`) was also added to the page — no DB migration, derived from `flashcards` + `flashcard_review_state`.
+
 #### 5. Middleware
 
 **File**: `src/middleware.ts`

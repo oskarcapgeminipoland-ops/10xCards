@@ -7,7 +7,7 @@ const { user } = Astro.locals;
 const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 const authedLinks = [
-  { href: "/ustawienia", label: t.nav.settings },
+  { href: "/settings", label: t.nav.settings },
   { href: "/flashcards", label: t.nav.flashcards },
   { href: "/flashcards/generate", label: t.nav.generate },
   { href: "/flashcards/review", label: t.nav.review },
