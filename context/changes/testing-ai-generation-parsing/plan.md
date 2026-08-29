@@ -78,8 +78,9 @@ modified** — every oracle decision (see Plan Brief "Key Decisions") resolved t
   against the DB migration SQL and the i18n strings — not against `schema.max`.
 
 `vitest.config.ts`, `CLAUDE.md`, and `test-plan.md` (§3 status, §6 cookbook) all
-reflect the widened test scope. `change.md` status → `implementing` then the
-orchestrator flips §3 Phase 1 → `complete`.
+reflect the widened test scope, with `test-plan.md` §3 Phase 1 flipped to
+`complete`. `change.md` `status` is managed by the 10x skills
+(`/10x-implement`, `/10x-archive`) — this plan does not prescribe its transitions.
 
 ### Key Discoveries
 
@@ -169,11 +170,18 @@ semantics; do not assume `.max` sees the raw length.
 `supabase/migrations/20260823134802_create_flashcards_table.sql` via
 `node:fs`/`node:path` (resolve from `import.meta.url` or `process.cwd()`), then
 extracts the CHECK bound with a tolerant regex
-(`/length\(question\)\s*<=\s*(\d+)/` and the `answer` equivalent). If the
-migration filename ever changes, glob `supabase/migrations/*_create_flashcards_table.sql`
-rather than hard-coding — but a single hard-coded path is acceptable since there
-is exactly one such migration and its rename would be a deliberate act that
-should break this test loudly.
+(`/length\(question\)\s*<=\s*(\d+)/` and the `answer` equivalent). A single
+hard-coded path is acceptable: it is the `CREATE TABLE` migration and today the
+only file with a `question`/`answer` length CHECK. **Known limitation** — this
+project already uses constraint-only follow-up migrations
+(`20260823153107_enforce_server_side_flashcard_timestamps.sql`), so a future
+`ALTER TABLE … DROP CONSTRAINT … ADD CONSTRAINT (length(question) <= N)` would not
+be picked up and the test would keep asserting the stale `CREATE TABLE` value.
+The test **must carry an inline comment** stating this assumption ("the
+question/answer length CHECK is defined once, in the create-table migration, and
+never altered by a later migration"); if that ever stops being true, widen the
+read to glob every `supabase/migrations/*.sql` and take the **last** CHECK match
+for each column. For this MVP the documented assumption is the accepted trade-off.
 
 **`@/` alias in tests** — already wired in `vitest.config.ts:12-14`; import the
 modules under test as `@/lib/services/flashcard-generation-parse` and
@@ -223,8 +231,11 @@ integration exists. Pure-prose edit — no code.
 
 - `npm run test` passes with the existing `src/lib/fsrs/scheduler.test.ts` still
   collected and green (no regression from the `include` change).
-- `npm run lint` passes.
-- `npx tsc --noEmit` (or `npm run build`'s type step) passes.
+- `npm run lint` passes (typescript-eslint runs with `projectService: true`, so
+  this is a genuine type-checked gate for the `.ts` files touched here).
+- `npm run build` passes — Astro's build runs the full type check; there is **no**
+  standalone `tsc` / `typecheck` script in this project, and bare `tsc --noEmit`
+  would fail on `.astro` files under the strict `tsconfig`.
 - A scratch `src/lib/schemas/__probe__.test.ts` with a trivial `expect(true).toBe(true)`
   is **discovered and run** by `npm run test`, then deleted. (Proves the glob
   widened; do not commit the probe.)
@@ -362,8 +373,9 @@ assert the returned shape. No assertion couples to a *recorded* real LLM respons
 
 - `npm run test` — the new `flashcard-generation-parse.test.ts` suite passes,
   fsrs suite still green.
-- `npm run lint` passes on the new file.
-- `npx tsc --noEmit` passes (test file included in the TS project).
+- `npm run lint` passes on the new file (type-checked ESLint rules).
+- `npm run build` passes — the new test file is in the TS project via `tsconfig`
+  `include: ["**/*"]`, so Astro's build type check covers it.
 - Every adversarial case is inside an `it.each` (no six near-identical `it`
   blocks) — grep the file for `it.each` and confirm ≥2 uses.
 
@@ -426,19 +438,32 @@ semantics, so a `.trim()` removal or an off-by-one in `.max` is caught.
 `"Tekst źródłowy może mieć maksymalnie 5000 znaków"`; `"   "` → `!success`,
 message `"Tekst źródłowy jest wymagany"`.
 
-#### 3. Importer-identity check
+#### 3. Importer-parity check (file-level)
 
 **File**: same
 
-**Intent**: Assert the routes and the client form import the **same** schema
-object this test validates (the parity design is "everyone imports one object").
+**Intent**: Prove the routes and the client form still **import the shared schema
+object** rather than a local/inline copy — the concrete "the copies diverged"
+failure mode of Risk #5. A referential `.toBe` on a re-import of the same module
+is tautological (ES modules are singletons) and proves nothing about the route
+files, so this check reads their **source** instead.
 
-**Contract**: `import { flashcardInputSchema } from "@/lib/schemas/flashcard"` and
-assert it is referentially the same as the export consumed elsewhere — e.g.
-`expect(flashcardInputSchema).toBe((await import("@/lib/schemas/flashcard")).flashcardInputSchema)`
-plus a static assertion/comment enumerating the five importer paths from research
-so a reviewer can eyeball drift. (No route module is imported — that would pull
-Astro context.)
+**Contract**: `it.each` over the grep-verified importer list from research Area 5:
+- `flashcardInputSchema`: `src/lib/services/flashcard-generation-parse.ts`,
+  `src/pages/api/flashcards/accept.ts`, `src/pages/api/flashcards/index.ts`,
+  `src/pages/api/flashcards/[id].ts`, `src/components/flashcards/FlashcardForm.tsx`
+- `generateRequestSchema`: `src/pages/api/flashcards/generate.ts`,
+  `src/components/flashcards/FlashcardGenerator.tsx`
+
+For each `(file, symbol)` pair: read the file via `node:fs` (same CWD/`import.meta.url`
+resolution as change #4) and assert it contains an `import` from
+`"@/lib/schemas/flashcard"` whose named-import list includes `symbol`. Use a
+tolerant regex (allow reordered/multi-line named imports); a bare `import * as`
+form should **fail** the assertion with a message pointing the maintainer at this
+test so the list can be updated deliberately. No route module is `import`ed at
+runtime — that would pull Astro context. A comment records that this proves the
+import edge, not that the symbol is wired into `safeParse` (route-behaviour parity
+is §3 Phase 3).
 
 #### 4. Limit-parity triangulation
 
@@ -456,10 +481,13 @@ literal, with a comment citing
 - **schema face**: `question` of `LIMITS.question` chars passes, `+ 1` fails; same
   for `answer`, `sourceText` — reuses cases from changes 1–2 but asserts the
   count comes from `LIMITS`, not a bare literal.
-- **migration face**: read the migration `.sql` via `node:fs`; regex
-  `/length\(question\)\s*<=\s*(\d+)/` → `Number(m[1]) === LIMITS.question`; same
-  for `answer`. Assert the file contains **no** `<= ` bound for a source-text
-  column (there is no such column).
+- **migration face**: read the `CREATE TABLE` migration `.sql` via `node:fs`;
+  regex `/length\(question\)\s*<=\s*(\d+)/` → `Number(m[1]) === LIMITS.question`;
+  same for `answer`. Assert the file contains **no** `<= ` bound for a source-text
+  column (there is no such column). Carry the inline comment from Critical
+  Implementation Details: this assumes the question/answer CHECK is defined once
+  in the create-table migration and never altered by a later migration — if that
+  changes, widen to glob all `supabase/migrations/*.sql` and take the last match.
 - **i18n face**: `expect(t.validation.questionTooLong).toContain(String(LIMITS.question))`,
   and the `answer` / `sourceText` equivalents against `t.validation.answerTooLong`
   / `t.validation.sourceTextTooLong`.
@@ -472,8 +500,8 @@ literal, with a comment citing
 #### Automated Verification
 
 - `npm run test` — `flashcard.test.ts` suite passes; other suites green.
-- `npm run lint` passes on the new file.
-- `npx tsc --noEmit` passes.
+- `npm run lint` passes on the new file (type-checked ESLint rules).
+- `npm run build` passes (Astro build type check).
 - The parity block reads the migration file successfully in the Vitest Node env
   (path resolves in CI too — verify via a relative path from `process.cwd()` or
   `import.meta.url`, not an absolute path).
@@ -546,18 +574,20 @@ reads the migration `.sql` from disk as its DB oracle.
 
 **Intent**: Advance §3 Phase 1 status now that tests have landed.
 
-**Contract**: §3 table, Phase 1 row — `Status` `researched` → `complete` (per the
-fixed status vocabulary in §3). `Last updated` header date bumped. No other row
-changes.
+**Contract**: §3 table, Phase 1 row — `Status` `planned` → `complete` (per the
+fixed status vocabulary in §3; the row was moved `researched` → `planned` in
+commit 9ee66a0 / the plan-review step). `Last updated` header date bumped. No
+other row changes.
 
 #### 5. Change identity
 
 **File**: `context/changes/testing-ai-generation-parsing/change.md`
 
-**Intent**: Reflect completion in the change's own front matter.
+**Intent**: Note that `change.md` front matter is left to the 10x skills.
 
-**Contract**: `status:` → `complete` (or the repo's closing convention); `updated:`
-→ today. `/10x-archive` is a separate later step, not part of this plan.
+**Contract**: This plan does **not** edit `change.md`. `/10x-implement` advances
+`status` as phases land and `/10x-archive` closes it — the implementer should not
+hand-edit the front matter here.
 
 #### 6. (Optional) test-plan §2 wording backports
 
@@ -577,17 +607,16 @@ entirely if the user prefers to keep §2 frozen.
 #### Automated Verification
 
 - `npm run test` still green (no code touched in this phase).
-- `npm run lint` / markdown formatting hook passes on `test-plan.md` and
-  `change.md`.
-- `git grep -n "researched" context/foundation/test-plan.md` no longer matches the
-  Phase 1 row.
+- `npm run lint` / markdown formatting hook passes on `test-plan.md`.
+- `grep -n "| planned | testing-ai-generation-parsing |" context/foundation/test-plan.md`
+  returns nothing — the §3 Phase 1 row no longer reads `planned`.
 
 #### Manual Verification
 
 - §6.1 / §6.5 / §6.6 no longer say "TBD — patrz §3 Faza 1" for the parts Phase 1
   covered.
 - §3 Phase 1 `Status` reads `complete`; §3 Phase 2/3 rows untouched.
-- `change.md` front matter is internally consistent (`status`, `updated`).
+- `change.md` was **not** edited by this phase.
 - Decision on the optional §2 backports is recorded (applied, or explicitly
   deferred in the PR description).
 
@@ -667,7 +696,7 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 - [ ] 1.1 `npm run test` passes with `scheduler.test.ts` still collected and green
 - [ ] 1.2 `npm run lint` passes
-- [ ] 1.3 `npx tsc --noEmit` (or build type step) passes
+- [ ] 1.3 `npm run build` passes (Astro build type check; no standalone `tsc` script)
 - [ ] 1.4 Scratch probe test under `src/lib/schemas/` is discovered and run, then deleted
 
 #### Manual
@@ -681,7 +710,7 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 - [ ] 2.1 `npm run test` — `flashcard-generation-parse.test.ts` passes, fsrs green
 - [ ] 2.2 `npm run lint` passes on the new file
-- [ ] 2.3 `npx tsc --noEmit` passes
+- [ ] 2.3 `npm run build` passes (Astro build type check)
 - [ ] 2.4 Adversarial + drop-reason cases use `it.each` (≥2 uses in the file)
 
 #### Manual
@@ -696,7 +725,7 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 - [ ] 3.1 `npm run test` — `flashcard.test.ts` passes; other suites green
 - [ ] 3.2 `npm run lint` passes on the new file
-- [ ] 3.3 `npx tsc --noEmit` passes
+- [ ] 3.3 `npm run build` passes (Astro build type check)
 - [ ] 3.4 Parity block reads the migration `.sql` successfully via a CWD/`import.meta.url`-relative path
 
 #### Manual
@@ -711,12 +740,12 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 #### Automated
 
 - [ ] 4.1 `npm run test` still green (no code touched)
-- [ ] 4.2 Lint / markdown format hook passes on `test-plan.md` and `change.md`
-- [ ] 4.3 `git grep "researched"` no longer matches the §3 Phase 1 row
+- [ ] 4.2 Lint / markdown format hook passes on `test-plan.md`
+- [ ] 4.3 No `| planned | testing-ai-generation-parsing |` line remains in the §3 Phase 1 row
 
 #### Manual
 
 - [ ] 4.4 §6.1 / §6.5 / §6.6 no longer say "TBD — patrz §3 Faza 1" for covered parts
 - [ ] 4.5 §3 Phase 1 `Status` reads `complete`; Phase 2/3 rows untouched
-- [ ] 4.6 `change.md` front matter consistent (`status`, `updated`)
+- [ ] 4.6 `change.md` was not edited by this phase
 - [ ] 4.7 Optional §2 backports applied or explicitly deferred in the PR description

@@ -4,8 +4,8 @@
 - **Plan**: context/changes/testing-ai-generation-parsing/plan.md
 - **Mode**: Deep
 - **Date**: 2026-08-29
-- **Verdict**: REVISE
-- **Findings**: 0 critical, 2 warnings, 2 observations
+- **Verdict**: REVISE → SOUND (after triage 2026-08-29 — all 4 findings fixed in plan.md)
+- **Findings**: 0 critical, 2 warnings, 2 observations — all FIXED
 
 ## Verdicts
 
@@ -72,7 +72,8 @@ already checked against code. No sub-agent launched.
   - Tradeoff: No mechanical guard until Phase 3 lands.
   - Confidence: HIGH — matches the plan's own "defer route surface to Phase 3".
   - Blind spot: None significant.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — Phase 3 change #3 rewritten as an `it.each`
+  file-level source check over the 7 grep-verified `(file, symbol)` importer pairs.
 
 ### F2 — `npx tsc --noEmit` is not a project gate
 
@@ -91,7 +92,9 @@ already checked against code. No sub-agent launched.
   bullet to Phases 2 and 3 as the fuller type check. Update matching Progress
   entries. Criterion 1.3's "(or the build type step)" hedge becomes the actual
   instruction.
-- **Decision**: PENDING
+- **Decision**: FIXED — all three `npx tsc --noEmit` bullets (criteria 1.3 / 2.3 /
+  3.3 + Progress) replaced with `npm run build`; `npm run lint` bullets annotated
+  as the type-checked-ESLint gate.
 
 ### F3 — Parity test reads only the CREATE TABLE migration
 
@@ -114,7 +117,11 @@ already checked against code. No sub-agent launched.
   or, minimum: add an inline comment stating the "CHECK is never altered by a
   later migration" assumption and why it's acceptable for MVP. Soften the "exactly
   one such migration" wording.
-- **Decision**: PENDING
+- **Decision**: FIXED (minimal variant) — kept the single-file read; Critical
+  Implementation Details now flags the constraint-only-migration precedent as a
+  Known limitation and mandates an inline comment stating the "CHECK defined once,
+  never altered later" assumption, with glob-all-migrations named as the escape
+  hatch. "Exactly one such migration" wording softened.
 
 ### F4 — Phase 4 references stale rollout status `researched`
 
@@ -133,7 +140,9 @@ already checked against code. No sub-agent launched.
   `| planned | testing-ai-generation-parsing |` is absent from the Phase 1 row.
   Trim the change.md status prescriptions from Desired End State and Phase 4 #5;
   note that the 10x skills manage `change.md`.
-- **Decision**: PENDING
+- **Decision**: FIXED — Phase 4 #4 + criteria 4.3 now key off `planned`; Desired
+  End State and Phase 4 #5 no longer prescribe `change.md` transitions (left to
+  `/10x-implement` / `/10x-archive`); Progress 4.2 / 4.3 / 4.6 synced.
 
 ## Notes — what's solid
 
