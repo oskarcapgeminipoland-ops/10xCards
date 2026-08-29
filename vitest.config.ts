@@ -1,8 +1,10 @@
 /**
- * Minimal vitest config, deliberately scoped: only `src/lib/fsrs/` is
- * covered (see `CLAUDE.md` and the plan's Testing Strategy). No Astro/React
- * test integration is added — the covered module has no Astro or React
- * imports, so the default Node environment with no plugins is enough.
+ * Vitest config for this project's unit tests. Coverage spans the pure,
+ * framework-free modules under `src/lib/`: FSRS scheduling logic
+ * (`src/lib/fsrs/`) plus the AI-generation parse/validate pipeline and its
+ * shared zod schemas (`src/lib/services/`, `src/lib/schemas/`). None of these
+ * import Astro or React, so the default Node environment with no plugins is
+ * enough; there is still no Astro/React component test integration.
  */
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
@@ -14,6 +16,6 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/lib/fsrs/**/*.test.ts"],
+    include: ["src/lib/fsrs/**/*.test.ts", "src/lib/services/**/*.test.ts", "src/lib/schemas/**/*.test.ts"],
   },
 });
