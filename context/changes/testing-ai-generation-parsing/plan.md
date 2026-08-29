@@ -281,7 +281,12 @@ hand:
 - `` "prefix ```json\n[…]\n``` " `` (prose before fence) → returned **unchanged**
   (minus outer trim) — regex is `^…$`-anchored
 - text after the closing ``` → returned unchanged
-- `` ```JSON `` uppercase tag → returned unchanged (`(?:json)?` is lowercase-only)
+- `` ```JSON `` uppercase tag → **correction (impl review F1):** not "returned
+  unchanged" — the outer ``` markers *are* stripped and the tag word stays glued
+  to the payload (`"JSON\n[]"`), because `(?:json)?` matches empty and the
+  `\s*```$` anchor still binds. Net effect is the same: the result is
+  un-parseable, so the pipeline fails closed downstream with
+  `"AI response was not valid JSON"`. The test pins `"JSON\n[]"`.
 - plain `"[…]"` with no fence → returned trimmed, unchanged otherwise
 
 #### 2. `parseGeneratedContent` — happy path & ordering

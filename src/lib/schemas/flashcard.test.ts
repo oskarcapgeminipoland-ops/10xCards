@@ -39,25 +39,29 @@ describe("flashcardInputSchema — boundary & trim behaviour", () => {
     expect(parsed.success).toBe(true);
   });
 
+  // Message assertions use the literal Polish strings, NOT t.validation.* — the
+  // schema is configured with those same t.validation.* expressions, so asserting
+  // against them would be a mirror test (test-plan.md §2 Risk #5). The literal is
+  // the independent oracle; t.validation.* is only re-used in the i18n-face block.
   it("rejects a 501-char question with the 'too long' message", () => {
     const parsed = flashcardInputSchema.safeParse({ question: "q".repeat(501), answer: "a" });
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
-    expect(parsed.error.issues[0]?.message).toBe(t.validation.questionTooLong);
+    expect(parsed.error.issues[0]?.message).toBe("Pytanie może mieć maksymalnie 500 znaków");
   });
 
   it("rejects a 1001-char answer with the 'too long' message", () => {
     const parsed = flashcardInputSchema.safeParse({ question: "q", answer: "a".repeat(1001) });
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
-    expect(parsed.error.issues[0]?.message).toBe(t.validation.answerTooLong);
+    expect(parsed.error.issues[0]?.message).toBe("Odpowiedź może mieć maksymalnie 1000 znaków");
   });
 
   it("rejects a whitespace-only question as required (trim runs before min(1))", () => {
     const parsed = flashcardInputSchema.safeParse({ question: "   ", answer: "a" });
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
-    expect(parsed.error.issues[0]?.message).toBe(t.validation.questionRequired);
+    expect(parsed.error.issues[0]?.message).toBe("Pytanie jest wymagane");
   });
 
   it("measures the TRIMMED length: 500 real chars + trailing spaces passes and is stored trimmed", () => {
@@ -81,14 +85,14 @@ describe("generateRequestSchema — source-text boundary", () => {
     const parsed = generateRequestSchema.safeParse({ sourceText: "x".repeat(5001) });
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
-    expect(parsed.error.issues[0]?.message).toBe(t.validation.sourceTextTooLong);
+    expect(parsed.error.issues[0]?.message).toBe("Tekst źródłowy może mieć maksymalnie 5000 znaków");
   });
 
   it("rejects whitespace-only source text as required", () => {
     const parsed = generateRequestSchema.safeParse({ sourceText: "   " });
     expect(parsed.success).toBe(false);
     if (parsed.success) return;
-    expect(parsed.error.issues[0]?.message).toBe(t.validation.sourceTextRequired);
+    expect(parsed.error.issues[0]?.message).toBe("Tekst źródłowy jest wymagany");
   });
 });
 
@@ -165,8 +169,10 @@ describe("limit parity — 500 / 1000 / 5000 agree across schema, migration and 
     expect(Number(q?.[1])).toBe(LIMITS.question);
     expect(Number(a?.[1])).toBe(LIMITS.answer);
     // source text is never persisted — the only gate is generateRequestSchema.
+    // Asserting the absence of the column name is the precise check; we do NOT
+    // also forbid the bare substring "5000" — an unrelated future number in this
+    // migration would fail that with a misleading message (impl review F3).
     expect(sql).not.toMatch(/source_?text/i);
-    expect(sql).not.toContain(String(LIMITS.sourceText));
   });
 
   it("i18n face — each 'too long' message states its LIMITS number", () => {
