@@ -694,15 +694,15 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 #### Automated
 
-- [ ] 1.1 `npm run test` passes with `scheduler.test.ts` still collected and green
-- [ ] 1.2 `npm run lint` passes
-- [ ] 1.3 `npm run build` passes (Astro build type check; no standalone `tsc` script)
-- [ ] 1.4 Scratch probe test under `src/lib/schemas/` is discovered and run, then deleted
+- [x] 1.1 `npm run test` passes with `scheduler.test.ts` still collected and green
+- [x] 1.2 `npm run lint` passes
+- [x] 1.3 `npm run build` passes (Astro build type check; no standalone `tsc` script)
+- [x] 1.4 Scratch probe test under `src/lib/schemas/` is discovered and run, then deleted
 
 #### Manual
 
-- [ ] 1.5 `git grep "fsrs"` in `vitest.config.ts` / `CLAUDE.md` shows no "only" claim
-- [ ] 1.6 `vitest.config.ts` header comment reads correctly for the new scope
+- [x] 1.5 `git grep "fsrs"` in `vitest.config.ts` / `CLAUDE.md` shows no "only" claim
+- [x] 1.6 `vitest.config.ts` header comment reads correctly for the new scope
 
 ### Phase 2: Risk #1 — Parse Pipeline Unit Tests
 

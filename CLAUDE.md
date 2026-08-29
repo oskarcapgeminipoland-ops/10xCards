@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run preview` — preview production build
 - `npm run lint` / `npm run lint:fix` — ESLint with type-checked rules
 - `npm run format` — Prettier (prettier-plugin-astro + prettier-plugin-tailwindcss)
-- `npm run test` — Vitest, scoped to `src/lib/fsrs/` (FSRS scheduling logic only; no Astro/React test integration is configured)
+- `npm run test` — Vitest, scoped to the framework-free modules under `src/lib/`: FSRS scheduling (`src/lib/fsrs/`) plus the AI-generation parse/validation unit tests (`src/lib/services/`, `src/lib/schemas/`); no Astro/React component test integration is configured
 
 Pre-commit hooks (husky + lint-staged) run `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 

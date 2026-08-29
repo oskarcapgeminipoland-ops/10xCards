@@ -1,7 +1,7 @@
 ---
 change_id: testing-ai-generation-parsing
 title: Testy jednostkowe potoku generowania AI — parsowanie i walidacja odpowiedzi LLM
-status: plan_reviewed
+status: implementing
 created: 2026-08-29
 updated: 2026-08-29
 archived_at: null
