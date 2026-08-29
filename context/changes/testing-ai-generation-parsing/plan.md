@@ -739,13 +739,13 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 #### Automated
 
-- [x] 4.1 `npm run test` still green (no code touched)
-- [x] 4.2 Lint / markdown format hook passes on `test-plan.md`
-- [x] 4.3 No `| planned | testing-ai-generation-parsing |` line remains in the §3 Phase 1 row
+- [x] 4.1 `npm run test` still green (no code touched) — 468a3f7
+- [x] 4.2 Lint / markdown format hook passes on `test-plan.md` — 468a3f7
+- [x] 4.3 No `| planned | testing-ai-generation-parsing |` line remains in the §3 Phase 1 row — 468a3f7
 
 #### Manual
 
-- [x] 4.4 §6.1 / §6.5 / §6.6 no longer say "TBD — patrz §3 Faza 1" for covered parts
-- [x] 4.5 §3 Phase 1 `Status` reads `complete`; Phase 2/3 rows untouched
-- [x] 4.6 `change.md` was not edited by this phase
-- [x] 4.7 Optional §2 backports applied or explicitly deferred in the PR description
+- [x] 4.4 §6.1 / §6.5 / §6.6 no longer say "TBD — patrz §3 Faza 1" for covered parts — 468a3f7
+- [x] 4.5 §3 Phase 1 `Status` reads `complete`; Phase 2/3 rows untouched — 468a3f7
+- [x] 4.6 `change.md` was not edited by this phase — 468a3f7
+- [x] 4.7 Optional §2 backports applied or explicitly deferred in the PR description — 468a3f7
