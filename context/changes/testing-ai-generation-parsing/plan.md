@@ -694,30 +694,30 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 #### Automated
 
-- [x] 1.1 `npm run test` passes with `scheduler.test.ts` still collected and green
-- [x] 1.2 `npm run lint` passes
-- [x] 1.3 `npm run build` passes (Astro build type check; no standalone `tsc` script)
-- [x] 1.4 Scratch probe test under `src/lib/schemas/` is discovered and run, then deleted
+- [x] 1.1 `npm run test` passes with `scheduler.test.ts` still collected and green — 68d2db2
+- [x] 1.2 `npm run lint` passes — 68d2db2
+- [x] 1.3 `npm run build` passes (Astro build type check; no standalone `tsc` script) — 68d2db2
+- [x] 1.4 Scratch probe test under `src/lib/schemas/` is discovered and run, then deleted — 68d2db2
 
 #### Manual
 
-- [x] 1.5 `git grep "fsrs"` in `vitest.config.ts` / `CLAUDE.md` shows no "only" claim
-- [x] 1.6 `vitest.config.ts` header comment reads correctly for the new scope
+- [x] 1.5 `git grep "fsrs"` in `vitest.config.ts` / `CLAUDE.md` shows no "only" claim — 68d2db2
+- [x] 1.6 `vitest.config.ts` header comment reads correctly for the new scope — 68d2db2
 
 ### Phase 2: Risk #1 — Parse Pipeline Unit Tests
 
 #### Automated
 
-- [ ] 2.1 `npm run test` — `flashcard-generation-parse.test.ts` passes, fsrs green
-- [ ] 2.2 `npm run lint` passes on the new file
-- [ ] 2.3 `npm run build` passes (Astro build type check)
-- [ ] 2.4 Adversarial + drop-reason cases use `it.each` (≥2 uses in the file)
+- [x] 2.1 `npm run test` — `flashcard-generation-parse.test.ts` passes, fsrs green
+- [x] 2.2 `npm run lint` passes on the new file
+- [x] 2.3 `npm run build` passes (Astro build type check)
+- [x] 2.4 Adversarial + drop-reason cases use `it.each` (≥2 uses in the file)
 
 #### Manual
 
-- [ ] 2.5 No expected value derived from running the function first (no output snapshot)
-- [ ] 2.6 `MAX_PROPOSALS` → 4 breaks the cap test; reverted
-- [ ] 2.7 Fence regex `/i` flag breaks the uppercase-tag test; reverted
+- [x] 2.5 No expected value derived from running the function first (no output snapshot)
+- [x] 2.6 `MAX_PROPOSALS` → 4 breaks the cap test; reverted
+- [x] 2.7 Fence regex `/i` flag breaks the uppercase-tag test; reverted
 
 ### Phase 3: Risk #5 (part) — Schema Unit Tests + Limit-Parity Triangulation
 
