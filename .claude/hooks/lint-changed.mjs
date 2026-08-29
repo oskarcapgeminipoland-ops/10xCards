@@ -11,10 +11,14 @@
 // Zero deps beyond node: built-ins. ESM (package.json "type": "module").
 // eslint is launched as `node node_modules/eslint/bin/eslint.js` so it works
 // without a shell on Windows (Node 22 refuses to spawn .cmd without shell:true).
+//
+// It runs against .claude/hooks/eslint.config.mjs (a light, NON-type-checked
+// config) — not the project's eslint.config.js — so a single-file lint takes
+// ~1.5 s instead of ~10 s. Type-aware rules stay in `npm run lint` / CI.
 
 import { readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { resolve, relative, extname, sep } from "node:path";
+import { resolve, relative, extname, sep, isAbsolute } from "node:path";
 
 const LINTABLE = new Set([".ts", ".tsx", ".astro"]);
 
@@ -33,25 +37,30 @@ if (!filePath || typeof filePath !== "string") process.exit(0);
 const abs = resolve(filePath);
 const rel = relative(process.cwd(), abs);
 
-// outside the project (scratchpad, ~/.claude, sibling repos, ...)
-if (rel === "" || rel.startsWith("..") || rel.split(sep).includes("..")) {
+// outside the project (scratchpad, ~/.claude, sibling repos, another drive, ...)
+if (
+  rel === "" ||
+  rel.startsWith("..") ||
+  rel.split(sep).includes("..") ||
+  isAbsolute(rel)
+) {
   process.exit(0);
 }
 if (!existsSync(abs)) process.exit(0);
 if (!LINTABLE.has(extname(abs))) process.exit(0);
 
 const eslintCli = resolve("node_modules/eslint/bin/eslint.js");
+const hookConfig = resolve(".claude/hooks/eslint.config.mjs");
+const eslintArgs = ["--no-config-lookup", "--config", hookConfig, "--no-warn-ignored", abs];
 
 let res;
 if (existsSync(eslintCli)) {
-  res = spawnSync(
-    process.execPath,
-    [eslintCli, "--no-warn-ignored", abs],
-    { encoding: "utf8" },
-  );
+  res = spawnSync(process.execPath, [eslintCli, ...eslintArgs], {
+    encoding: "utf8",
+  });
 } else {
   // Fallback: no local install — go through npx (needs a shell on Windows).
-  res = spawnSync(`npx eslint --no-warn-ignored "${abs}"`, {
+  res = spawnSync(`npx eslint ${eslintArgs.map((a) => `"${a}"`).join(" ")}`, {
     encoding: "utf8",
     shell: true,
   });
