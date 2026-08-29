@@ -723,29 +723,29 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 #### Automated
 
-- [x] 3.1 `npm run test` — `flashcard.test.ts` passes; other suites green
-- [x] 3.2 `npm run lint` passes on the new file
-- [x] 3.3 `npm run build` passes (Astro build type check)
-- [x] 3.4 Parity block reads the migration `.sql` successfully via a CWD/`import.meta.url`-relative path
+- [x] 3.1 `npm run test` — `flashcard.test.ts` passes; other suites green — 5330893
+- [x] 3.2 `npm run lint` passes on the new file — 5330893
+- [x] 3.3 `npm run build` passes (Astro build type check) — 5330893
+- [x] 3.4 Parity block reads the migration `.sql` successfully via a CWD/`import.meta.url`-relative path — 5330893
 
 #### Manual
 
-- [x] 3.5 `LIMITS` are literals with a source comment; no `.max` / `.checks` introspection
-- [x] 3.6 Migration CHECK → 400 breaks the migration-face assertion; reverted
-- [x] 3.7 Dropping the number from an i18n string breaks the i18n-face assertion; reverted
-- [x] 3.8 `.max(500)` → `.max(499)` breaks the schema-face boundary test; reverted
+- [x] 3.5 `LIMITS` are literals with a source comment; no `.max` / `.checks` introspection — 5330893
+- [x] 3.6 Migration CHECK → 400 breaks the migration-face assertion; reverted — 5330893
+- [x] 3.7 Dropping the number from an i18n string breaks the i18n-face assertion; reverted — 5330893
+- [x] 3.8 `.max(500)` → `.max(499)` breaks the schema-face boundary test; reverted — 5330893
 
 ### Phase 4: Cookbook Patterns + Rollout Status Sync
 
 #### Automated
 
-- [ ] 4.1 `npm run test` still green (no code touched)
-- [ ] 4.2 Lint / markdown format hook passes on `test-plan.md`
-- [ ] 4.3 No `| planned | testing-ai-generation-parsing |` line remains in the §3 Phase 1 row
+- [x] 4.1 `npm run test` still green (no code touched)
+- [x] 4.2 Lint / markdown format hook passes on `test-plan.md`
+- [x] 4.3 No `| planned | testing-ai-generation-parsing |` line remains in the §3 Phase 1 row
 
 #### Manual
 
-- [ ] 4.4 §6.1 / §6.5 / §6.6 no longer say "TBD — patrz §3 Faza 1" for covered parts
-- [ ] 4.5 §3 Phase 1 `Status` reads `complete`; Phase 2/3 rows untouched
-- [ ] 4.6 `change.md` was not edited by this phase
-- [ ] 4.7 Optional §2 backports applied or explicitly deferred in the PR description
+- [x] 4.4 §6.1 / §6.5 / §6.6 no longer say "TBD — patrz §3 Faza 1" for covered parts
+- [x] 4.5 §3 Phase 1 `Status` reads `complete`; Phase 2/3 rows untouched
+- [x] 4.6 `change.md` was not edited by this phase
+- [x] 4.7 Optional §2 backports applied or explicitly deferred in the PR description
