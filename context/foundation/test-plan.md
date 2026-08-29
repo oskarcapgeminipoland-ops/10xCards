@@ -66,7 +66,7 @@ orchestrator aktualizuje Status w miarę pojawiania się artefaktów na dysku.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | Potok generowania AI — czysta walidacja i parsowanie | Poprawny tekst nigdy po cichu nie daje pustego zestawu; adversarialne odpowiedzi LLM nie rzucają wyjątku | #1, #5 (część) | unit | not started | — |
+| 1 | Potok generowania AI — czysta walidacja i parsowanie | Poprawny tekst nigdy po cichu nie daje pustego zestawu; adversarialne odpowiedzi LLM nie rzucają wyjątku | #1, #5 (część) | unit | planned | testing-ai-generation-parsing |
 | 2 | Taksonomia awarii dostawcy AI — mapowanie błędów route i wyspy | Żadna awaria AI nie kończy się zawieszonym ekranem; każdy wariant błędu → właściwy status i działający retry | #2 | integration + unit | not started | — |
 | 3 | Cross-account i parytet wejścia na ścieżce zapisu | Użytkownik B nie tknie danych A przez żaden endpoint zapisu; przekroczone limity → 400 nie 500; wyszukiwarka nie wstrzykuje warunków | #3, #5, #4 | integration (lokalny Supabase, 2 użytkowników) | not started | — |
 | 4 | Logika selekcji kolejki powtórek | Fiszki never-reviewed nigdy nie znikają z sesji; sortowanie i cap trzymają się reguł | #6 | unit lub integration | not started | — |
