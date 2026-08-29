@@ -67,6 +67,8 @@ Powiązania z istniejącymi dokumentami:
 | D8 | **Guard pętli** w hooku `Stop`: przy `stop_hook_active === true` w stdin hook robi `exit 0` bez uruchamiania `astro check`. | `exit 2` z hooka `Stop` blokuje zakończenie tury i wpycha stderr do agenta. Bez guardu utrzymujący się błąd typów mógłby zapętlić agenta. Guard = agent dostaje **jedną** próbę naprawy po zatrzymaniu; jeśli zatrzyma się ponownie, hook przepuszcza. |
 | D9 | Helper ignoruje edycje **poza katalogiem projektu** (scratchpad, `~/.claude`, itp.) oraz pliki, które nie istnieją na dysku po zdarzeniu. | Ścieżka spoza `process.cwd()` lub nieistniejący plik → `exit 0`. |
 | D10 | Jawne `timeout` na każdym hooku: lint `10000` ms, typecheck `120000` ms. | Materiał kursowy tak robi. Typecheck `Stop` odpala się raz na turę — długi timeout jest tani, a pierwszy `astro check` pobiera language server (sieć). |
+| D11 | **Dług typecheck (stan zastany):** `astro check` na `main` miał **3 błędy** typów (`flashcards.ts:createFlashcard/createAiFlashcard`, `flashcard-reviews.ts:submitReview`) — sentinel `{ Error }` z `postgrest-js` 2.105 przy braku generyka `Database` w kliencie Supabase; `.overrideTypes()` w tych miejscach nie zdejmuje go do końca. Wybór: **B-lite** — `// @ts-expect-error` (z komentarzem) na 3 liniach, `astro check` → 0 błędów, hook `Stop` jest twardym `exit 2` bez logiki baseline. | Runtime był OK (błędy wyłącznie typów, `error`/`existingError` sprawdzane wyżej). Czysta naprawa = `supabase gen types` + `createServerClient<Database>` + usunięcie ~14 `.overrideTypes` — osobna zmiana (własny `change-id`), grozi rozjechaniem zakresu i odsłonięciem kolejnych zamaskowanych błędów. `@ts-expect-error` (nie `@ts-ignore`) jest samosprzątający: gdy przyczyna zniknie, dyrektywa sama zgłosi się jako „unused". |
+| D12 | `.claude/**` dodane do `ignores` w `eslint.config.js`. | `npm run lint` = `eslint .` (całe repo) zaczął łapać `.claude/hooks/*.mjs` i wywalał się („was not found by the project service" — pliki spoza `tsconfig`). `.claude/` to tooling agenta, nie kod aplikacji — poza powierzchnią lintu. Hook per-edit i tak lintuje tylko `.ts/.tsx/.astro`, więc jego nie dotyczy. |
 
 ## 4. Hook 1 — lint per-edit (`PostToolUse`)
 
@@ -162,12 +164,15 @@ Szkic `typecheck.mjs` — analogicznie: `stop_hook_active` guard → `spawnSync(
 | Plik | Zmiana |
 | ---- | ------ |
 | `.claude/settings.json` | **nowy** — sekcja `hooks` z `PostToolUse` (matcher `Write\|Edit`) i `Stop` |
-| `.claude/hooks/lint-changed.mjs` | **nowy** — helper lint per-plik |
-| `.claude/hooks/typecheck.mjs` | **nowy** — helper typecheck z guardem pętli |
+| `.claude/hooks/lint-changed.mjs` | **nowy** — helper lint per-plik (eslint uruchamiany jako `node node_modules/eslint/bin/eslint.js`, bez shella — Node 22 nie spawnuje `.cmd` bez `shell:true`) |
+| `.claude/hooks/typecheck.mjs` | **nowy** — helper typecheck z guardem pętli (`npm run typecheck` przez `shell:true` — komenda stała, bez inputu) |
 | `package.json` | **edycja** — jedna linia: `"typecheck": "astro check"` w `scripts` |
+| `eslint.config.js` | **edycja** — `{ ignores: [".claude/**"] }` (D12) |
+| `src/lib/services/flashcards.ts` | **edycja** — 2× `// @ts-expect-error` + komentarz (D11) |
+| `src/lib/services/flashcard-reviews.ts` | **edycja** — 1× `// @ts-expect-error` + komentarz (D11) |
 | `context/foundation/agent-hooks.md` | **nowy** — ten dokument |
 
-Planowana zawartość `.claude/settings.json`:
+Zawartość `.claude/settings.json` (stan wdrożony):
 
 ```json
 {
@@ -207,8 +212,28 @@ Planowana zawartość `.claude/settings.json`:
 7. `npm run typecheck` działa samodzielnie z CLI.
 8. `npm run lint` / `npm run test` nadal zielone (brak regresji konfiguracji).
 
-## 9. Log zmian dokumentu
+## 9. Wynik weryfikacji (2026-08-29)
+
+Wdrożone na branchu `chore/claude-per-edit-hooks`:
+
+| Sprawdzenie | Wynik |
+| ----------- | ----- |
+| `npm run typecheck` (`astro check`) | ✅ 0 errors, 0 warnings, 5 hints (po D11) |
+| `npm run lint` (`eslint .`) | ✅ exit 0 (1 pre-existing warning `no-console` w `api-helpers.ts:53` — nie z tej zmiany) |
+| `npm run test` (`vitest run`) | ✅ 56 passed / 3 pliki |
+| Hook lint — clean `.ts` | ✅ exit 0 |
+| Hook lint — plik z błędem ESLint | ✅ exit 2 + pełny raport na stderr, plik niezmieniony |
+| Hook lint — `README.md` / poza repo (ścieżka Windows z `\`) | ✅ exit 0 (no-op) |
+| Hook typecheck — normalne zakończenie tury | ✅ exit 0 (typecheck zielony) |
+| Hook typecheck — guard `stop_hook_active: true` | ✅ exit 0 w ~1 s, bez `astro check` |
+
+Uwaga operacyjna: hook `Stop` był aktywny już w trakcie sesji wdrożeniowej —
+Claude Code podchwycił nowo utworzony `.claude/settings.json` bez restartu.
+
+## 10. Log zmian dokumentu
 
 - `2026-08-29` — utworzenie; założenia uzgodnione w rozmowie (4 pytania: typecheck
   jako `Stop`, wołany przez skrypt `astro check`; lint per-plik przez helper Node;
   reakcja lintu report-only + exit 2).
+- `2026-08-29` — wdrożenie + D11 (dług typecheck → `@ts-expect-error` ×3, wariant
+  B-lite) + D12 (`.claude/**` w `ignores` eslint). Dodano §9 z wynikiem weryfikacji.
