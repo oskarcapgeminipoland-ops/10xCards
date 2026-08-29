@@ -708,32 +708,32 @@ None — no schema or data changes. The only config change is `vitest.config.ts`
 
 #### Automated
 
-- [x] 2.1 `npm run test` — `flashcard-generation-parse.test.ts` passes, fsrs green
-- [x] 2.2 `npm run lint` passes on the new file
-- [x] 2.3 `npm run build` passes (Astro build type check)
-- [x] 2.4 Adversarial + drop-reason cases use `it.each` (≥2 uses in the file)
+- [x] 2.1 `npm run test` — `flashcard-generation-parse.test.ts` passes, fsrs green — 1dff9ce
+- [x] 2.2 `npm run lint` passes on the new file — 1dff9ce
+- [x] 2.3 `npm run build` passes (Astro build type check) — 1dff9ce
+- [x] 2.4 Adversarial + drop-reason cases use `it.each` (≥2 uses in the file) — 1dff9ce
 
 #### Manual
 
-- [x] 2.5 No expected value derived from running the function first (no output snapshot)
-- [x] 2.6 `MAX_PROPOSALS` → 4 breaks the cap test; reverted
-- [x] 2.7 Fence regex `/i` flag breaks the uppercase-tag test; reverted
+- [x] 2.5 No expected value derived from running the function first (no output snapshot) — 1dff9ce
+- [x] 2.6 `MAX_PROPOSALS` → 4 breaks the cap test; reverted — 1dff9ce
+- [x] 2.7 Fence regex `/i` flag breaks the uppercase-tag test; reverted — 1dff9ce
 
 ### Phase 3: Risk #5 (part) — Schema Unit Tests + Limit-Parity Triangulation
 
 #### Automated
 
-- [ ] 3.1 `npm run test` — `flashcard.test.ts` passes; other suites green
-- [ ] 3.2 `npm run lint` passes on the new file
-- [ ] 3.3 `npm run build` passes (Astro build type check)
-- [ ] 3.4 Parity block reads the migration `.sql` successfully via a CWD/`import.meta.url`-relative path
+- [x] 3.1 `npm run test` — `flashcard.test.ts` passes; other suites green
+- [x] 3.2 `npm run lint` passes on the new file
+- [x] 3.3 `npm run build` passes (Astro build type check)
+- [x] 3.4 Parity block reads the migration `.sql` successfully via a CWD/`import.meta.url`-relative path
 
 #### Manual
 
-- [ ] 3.5 `LIMITS` are literals with a source comment; no `.max` / `.checks` introspection
-- [ ] 3.6 Migration CHECK → 400 breaks the migration-face assertion; reverted
-- [ ] 3.7 Dropping the number from an i18n string breaks the i18n-face assertion; reverted
-- [ ] 3.8 `.max(500)` → `.max(499)` breaks the schema-face boundary test; reverted
+- [x] 3.5 `LIMITS` are literals with a source comment; no `.max` / `.checks` introspection
+- [x] 3.6 Migration CHECK → 400 breaks the migration-face assertion; reverted
+- [x] 3.7 Dropping the number from an i18n string breaks the i18n-face assertion; reverted
+- [x] 3.8 `.max(500)` → `.max(499)` breaks the schema-face boundary test; reverted
 
 ### Phase 4: Cookbook Patterns + Rollout Status Sync
 
