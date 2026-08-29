@@ -142,6 +142,12 @@ export async function submitReview(
   }
 
   const now = new Date();
+  // postgrest-js 2.105 without a generated `Database` type leaves a `{ Error }`
+  // sentinel in `existing`'s union that `.overrideTypes` above doesn't fully
+  // strip; `existingError` is checked above, so `existing` is `ReviewStateRow |
+  // null` here. Remove when the Supabase client is typed via `supabase gen
+  // types` (see agent-hooks.md).
+  // @ts-expect-error — see note above
   const nextCard = applyRating(toCard(existing), now, rating);
   const row = fromCard(flashcardId, userId, nextCard);
 

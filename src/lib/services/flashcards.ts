@@ -118,6 +118,11 @@ export async function createFlashcard(
     throw error;
   }
 
+  // postgrest-js 2.105 without a generated `Database` type leaves a `{ Error }`
+  // sentinel in `data`'s union that `.overrideTypes` above doesn't fully strip.
+  // `error` is checked above, so `data` is a FlashcardRow here. Remove when the
+  // Supabase client is typed via `supabase gen types` (see agent-hooks.md).
+  // @ts-expect-error — see note above
   return toFlashcard(data);
 }
 
@@ -148,6 +153,11 @@ export async function createAiFlashcard(
     throw error;
   }
 
+  // postgrest-js 2.105 without a generated `Database` type leaves a `{ Error }`
+  // sentinel in `data`'s union that `.overrideTypes` above doesn't fully strip.
+  // `error` is checked above, so `data` is a FlashcardRow here. Remove when the
+  // Supabase client is typed via `supabase gen types` (see agent-hooks.md).
+  // @ts-expect-error — see note above
   return toFlashcard(data);
 }
 
