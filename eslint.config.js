@@ -76,7 +76,8 @@ const astroConfig = tseslint.config({
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   // Agent/editor tooling, not application source — outside the lint surface.
-  { ignores: [".claude/**"] },
+  // The E2E OpenRouter stub is a plain Node script, not part of the TS project.
+  { ignores: [".claude/**", "e2e/support/*.mjs"] },
   baseConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],

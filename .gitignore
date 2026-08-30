@@ -30,3 +30,11 @@ pnpm-debug.log*
 # 10x-cli skills fetched from 10xDevs lessons
 .claude/skills/
 .agents/skills/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e/.auth/
+/.playwright-cli/

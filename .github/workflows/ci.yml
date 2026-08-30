@@ -24,8 +24,42 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
+  e2e:
+    runs-on: ubuntu-latest
+    # The specs hit the real (prod) Supabase project on one shared test account,
+    # and flashcard-manual-crud signs out globally — overlapping runs would break
+    # each other. Serialize instead of running in parallel.
+    concurrency:
+      group: e2e-supabase-shared-account
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx astro sync
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          # Dev server (started by Playwright's webServer) talks to real Supabase.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          # Dedicated test account for auth.setup.ts / flashcard-manual-crud.
+          E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          # OpenRouter is stubbed locally — playwright.config.ts wires the stub's
+          # URL and a dummy key into the dev server itself, so no secret needed.
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   deploy:
-    needs: ci
+    needs: [ci, e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
