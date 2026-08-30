@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-08-29
+> Last updated: 2026-08-30
 
 ## 1. Strategy
 
@@ -146,7 +146,45 @@ odpowiednia faza rolloutu wyląduje; wcześniej brzmi „TBD — patrz §3 Faza 
 
 ### 6.3 Dodanie testu e2e
 
-- Świadomie pominięte w tym rollout — patrz §7 (wywiad Q5).
+> Warstwa e2e jest **poza** fazowym rolloutem (§3–§5, patrz §7). Poniższe testy
+> powstały ćwiczeniowo przez skill `/10x-e2e` i pokrywają podróż generowania
+> fiszek end-to-end. Traktuj je jako wzorzec, nie jako zmianę strategii z §1–§5.
+
+- **Lokalizacja / runner**: `e2e/*.spec.ts`, jeden test na plik. `npm run test:e2e`
+  (podgląd krok po kroku: `npm run test:e2e:ui`). Instrukcja i setup: `README.md`
+  §End-to-End Tests.
+- **Co prawdziwe, co zamockowane**: auth, routing, `/api/flashcards/*` i baza
+  (prod Supabase) — prawdziwe. Mockowany tylko OpenRouter, na warstwie HTTP:
+  lokalny stub `e2e/support/openrouter-mock.mjs`, który Playwright startuje sam, a
+  dev server dostaje `OPENROUTER_BASE_URL` (osobny port 4331). LLM jest wołany
+  server-side, więc `page.route()` by go nie przechwycił — stąd stub za realnym URL
+  zamiast interceptora w przeglądarce.
+- **Auth bez UI**: `e2e/auth.setup.ts` (projekt `setup`) loguje się raz i zapisuje
+  `storageState` do `e2e/.auth/user.json` (gitignore). Wymaga `E2E_USERNAME` /
+  `E2E_PASSWORD` w `.env`.
+- **Izolacja i sprzątanie**: unikalny znacznik `e2e-<ts>-<rnd>` w treści źródłowej
+  (stub wstrzykuje go w pytania), cleanup przez API po znaczniku — przed testem
+  (recovery po crashu) i po nim. `workers: 1`, `timeout: 120s`: napędzamy jeden
+  zimny `astro dev`, którego pierwsza kompilacja trasy bywa wolna.
+- **Scenariusze stuba** przez marker w tekście źródłowym: brak markera → 3 poprawne
+  fiszki; `MOCK_RATE_LIMIT` → 429; `MOCK_PROSE` → poprawne fiszki w prozie + fence;
+  `MOCK_EMPTY` → `[]`.
+- **Hydracja islands**: helpery w `e2e/support/astro.ts` (`gotoHydrated`,
+  `fillWhenReady`) czekają, aż `<astro-island>` straci atrybut `ssr` — inaczej
+  `fill()` / `click()` wyścigają się z hydracją Reacta (wartość ląduje w DOM, ale
+  nie w stanie). Globalny `<Toaster>` nigdy nie hydratuje, więc czekanie jest
+  ograniczone czasowo.
+- **Testy**:
+  - `flashcard-generation-persists.spec.ts` — ryzyko **#1**: wklej tekst →
+    zaakceptuj propozycję → fiszka trwała po realnym reloadzie SSR na `/flashcards`.
+    Break-verified: wyłączenie insertu w `createAiFlashcard` → test czerwony na
+    asercji trwałości.
+  - `flashcard-generation-provider-error.spec.ts` — ryzyko **#2**: 429 od dostawcy
+    → widoczne „Spróbuj ponownie", wyjście ze stanu „generating", zero zapisów.
+  - `seed.spec.ts` — wzorzec (ryzyko #5-adjacent): ręcznie utworzona fiszka trwała
+    po reloadzie.
+- **Zakres**: te specy zakładają lokalny stub (`OPENROUTER_BASE_URL`) — nie przejdą
+  przeciw wdrożonemu `PLAYWRIGHT_BASE_URL` bez równoważnego mocka po tamtej stronie.
 
 ### 6.4 Dodanie testu dla nowego endpointu API
 

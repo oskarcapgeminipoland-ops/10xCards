@@ -20,6 +20,9 @@ export default defineConfig({
       SUPABASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
       SUPABASE_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      // Base URL for the OpenRouter chat-completions API. Defaults to the real
+      // endpoint; overridden in E2E to point at a local HTTP stub.
+      OPENROUTER_BASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
 });

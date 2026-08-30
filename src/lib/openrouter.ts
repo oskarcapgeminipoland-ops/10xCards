@@ -1,6 +1,11 @@
-import { OPENROUTER_API_KEY } from "astro:env/server";
+import { OPENROUTER_API_KEY, OPENROUTER_BASE_URL } from "astro:env/server";
 
-const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+/** Real OpenRouter chat-completions endpoint. `OPENROUTER_BASE_URL` overrides the
+ * origin (scheme + host [+ port]) in E2E so requests hit a local HTTP stub; the
+ * `/api/v1/chat/completions` path is always appended. */
+const OPENROUTER_ENDPOINT = OPENROUTER_BASE_URL
+  ? `${OPENROUTER_BASE_URL.replace(/\/$/, "")}/api/v1/chat/completions`
+  : "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_TIMEOUT_MS = 30000;
 
 /** Default model: OpenRouter's own free-tier auto-router — always $0, fails over across

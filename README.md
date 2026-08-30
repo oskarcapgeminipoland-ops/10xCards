@@ -54,6 +54,8 @@ npm run dev
 - `npm run lint:fix` - Auto-fix ESLint issues
 - `npm run format` - Run Prettier
 - `npm run test` - Run unit tests
+- `npm run test:e2e` - Run Playwright end-to-end tests (headless)
+- `npm run test:e2e:ui` - Playwright UI mode: watch the browser run each step (`npx playwright test --ui`)
 
 ## Project Structure
 
@@ -147,6 +149,65 @@ Users can then sign in immediately after sign-up without clicking a confirmation
 | `/dashboard`          | Legacy alias — 302-redirects to `/settings`                            |
 
 Route protection is handled in `src/middleware.ts`. Add paths to the `PROTECTED_ROUTES` array there to require authentication.
+
+## End-to-End Tests
+
+Playwright specs live in `e2e/` (driven by the `/10x-e2e` skill). They cover the
+AI flashcard-generation journey end to end:
+
+- `e2e/seed.spec.ts` — exemplar: a manually created flashcard survives a full page reload.
+- `e2e/flashcard-generation-persists.spec.ts` — paste text → accept a generated proposal → the card persists across an SSR reload.
+- `e2e/flashcard-generation-provider-error.spec.ts` — a provider rate-limit surfaces a retryable error, never a hung screen.
+
+### Real vs mocked
+
+Auth, routing, the `/api/flashcards/*` routes and the Supabase database run for
+real. Only OpenRouter is faked — at the HTTP layer, by a local stub
+(`e2e/support/openrouter-mock.mjs`) the runner starts automatically and the dev
+server is pointed at via `OPENROUTER_BASE_URL`. Playwright manages both servers
+itself on a dedicated port (**4331**), separate from `npm run dev` (4321).
+
+### Setup
+
+1. Install the browser once: `npx playwright install chromium`
+2. Add a real test account to `.env` (Supabase points at prod — this project has
+   no local DB):
+
+   ```
+   E2E_USERNAME=<test account email>
+   E2E_PASSWORD=<test account password>
+   ```
+
+   `e2e/auth.setup.ts` signs in once and saves the session to
+   `e2e/.auth/user.json` (gitignored); every spec then starts authenticated.
+
+### Running locally
+
+```bash
+# headless, all specs (also what CI would run)
+npm run test:e2e
+
+# UI mode — pick a spec, press play, watch the browser render every step;
+# the left panel lists each action with a DOM snapshot of what was clicked
+npm run test:e2e:ui          # = npx playwright test --ui
+
+# one real browser window, in real time
+npx playwright test e2e/flashcard-generation-persists.spec.ts --headed
+
+# step through action-by-action
+npx playwright test e2e/seed.spec.ts --debug
+
+# record a trace, then time-travel through before/after screenshots of every action
+npx playwright test --trace on
+npx playwright show-trace
+```
+
+Filter to one test with `-g "<title fragment>"`. The `setup` (login) project
+always runs first — `chromium` depends on it.
+
+> A run really signs in as the test account and really creates/deletes a
+> flashcard in the production Supabase project. Each spec cleans up its own rows
+> (unique `[e2e-…]` tag) through the API.
 
 ## Deployment
 
