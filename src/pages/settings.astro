@@ -14,7 +14,11 @@ let statsFailed = false;
 if (supabase) {
   try {
     stats = await getAccountStats(supabase);
-  } catch {
+  } catch (err) {
+    // Keep the graceful `statsFailed` fallback below, but don't discard the
+    // error silently — without this line a real Supabase failure is
+    // invisible in server logs and impossible to diagnose.
+    console.error("Failed to load account stats for /settings:", err);
     statsFailed = true;
   }
 }
