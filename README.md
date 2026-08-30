@@ -140,24 +140,24 @@ Users can then sign in immediately after sign-up without clicking a confirmation
 
 ### Auth routes
 
-| Route                 | Description                                                             |
-| --------------------- | ----------------------------------------------------------------------- |
-| `/auth/signin`        | Email/password sign-in form                                             |
-| `/auth/signup`        | Email/password sign-up form                                             |
-| `/auth/confirm-email` | Post-signup "check your inbox" page                                     |
+| Route                 | Description                                                                     |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `/auth/signin`        | Email/password sign-in form                                                     |
+| `/auth/signup`        | Email/password sign-up form                                                     |
+| `/auth/confirm-email` | Post-signup "check your inbox" page                                             |
 | `/settings`           | Account panel + learning stats (redirects to `/auth/signin` if unauthenticated) |
-| `/dashboard`          | Legacy alias — 302-redirects to `/settings`                            |
+| `/dashboard`          | Legacy alias — 302-redirects to `/settings`                                     |
 
 Route protection is handled in `src/middleware.ts`. Add paths to the `PROTECTED_ROUTES` array there to require authentication.
 
 ## End-to-End Tests
 
-Playwright specs live in `e2e/` (driven by the `/10x-e2e` skill). They cover the
-AI flashcard-generation journey end to end:
+Playwright specs live in `e2e/` (driven by the `/10x-e2e` skill):
 
 - `e2e/seed.spec.ts` — exemplar: a manually created flashcard survives a full page reload.
 - `e2e/flashcard-generation-persists.spec.ts` — paste text → accept a generated proposal → the card persists across an SSR reload.
 - `e2e/flashcard-generation-provider-error.spec.ts` — a provider rate-limit surfaces a retryable error, never a hung screen.
+- `e2e/flashcard-manual-crud.spec.ts` — full manual-management journey: sign-in error path → sign in → create → edit → delete → sign out. Converted from a `playwright codegen` recording.
 
 ### Real vs mocked
 
@@ -180,6 +180,9 @@ itself on a dedicated port (**4331**), separate from `npm run dev` (4321).
 
    `e2e/auth.setup.ts` signs in once and saves the session to
    `e2e/.auth/user.json` (gitignored); every spec then starts authenticated.
+   The one exception is `flashcard-manual-crud.spec.ts`, which starts logged
+   out to drive its own auth and re-seeds `e2e/.auth/user.json` afterwards
+   (the app's sign-out is a global Supabase revocation).
 
 ### Running locally
 

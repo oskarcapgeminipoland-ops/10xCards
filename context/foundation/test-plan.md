@@ -102,15 +102,15 @@ Pełny zestaw bramek, które muszą przejść, zanim zmiana trafi na produkcję.
 „required after §3 Phase N" oznacza, że bramka jest egzekwowana po wylądowaniu
 tej fazy rolloutu; wcześniej jest `planned`.
 
-| Gate                                            | Where                | Required?                    | Catches                                                                                                                                                                                                    |
-| ----------------------------------------------- | -------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| lint + typecheck                                | local + CI           | required                     | drift składni / typów. **Uwaga:** trigger w `.github/workflows/ci.yml` to nadal `master`, a domyślny branch to `main` → CI nie odpala się na `main`. Naprawa triggera niesiona przez §3 Faza 5 jako prereq |
-| unit + integration                              | local + CI           | required after §3 Phase 1    | regresje logiki (#1, #2, #5, #6)                                                                                                                                                                           |
-| integracja z lokalnym Supabase (2 użytkowników) | CI on PR             | required after §3 Phase 3    | cross-account / RLS / pre-check własności (#3), parytet limitów (#5)                                                                                                                                       |
-| e2e on critical flows                           | —                    | deferred — §7 (wywiad Q5)    | zerwane krytyczne ścieżki użytkownika; świadomie poza zakresem MVP po godzinach, weryfikacja manualna per faza jak dotąd                                                                                   |
-| post-edit hook                                  | local (pętla agenta) | recommended after §3 Phase 5 | regresje w czasie edycji; konfiguracja to Moduł 3 Lekcja 3, nie ta lekcja                                                                                                                                  |
-| visual diff / multimodal review                 | CI on PR             | optional                     | regresje renderowania; max 1–3 ekrany krytyczne, jeśli kiedykolwiek — patrz §7                                                                                                                             |
-| pre-prod smoke                                  | między merge a prod  | optional                     | błędy środowiskowe (propagacja `astro:env` / rotacja sekretów — patrz `infrastructure.md` §Risk Register)                                                                                                  |
+| Gate                                            | Where                | Required?                    | Catches                                                                                                                                                                                                                             |
+| ----------------------------------------------- | -------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| lint + typecheck                                | local + CI           | required                     | drift składni / typów. Job `ci` w `.github/workflows/ci.yml`, trigger `main` (push + PR)                                                                                                                                            |
+| unit + integration                              | local + CI           | required after §3 Phase 1    | regresje logiki (#1, #2, #5, #6)                                                                                                                                                                                                    |
+| integracja z lokalnym Supabase (2 użytkowników) | CI on PR             | required after §3 Phase 3    | cross-account / RLS / pre-check własności (#3), parytet limitów (#5)                                                                                                                                                                |
+| e2e (Playwright)                                | CI (push + PR)       | on — poza fazowym rolloutem  | zerwane ścieżki: generowanie AI (#1, #2) + ręczny CRUD (S-03). Job `e2e`, serializowany `concurrency` (wspólne konto prod, globalne wylogowanie w `flashcard-manual-crud`); wymaga `E2E_USERNAME`/`E2E_PASSWORD`. Gate'uje `deploy` |
+| post-edit hook                                  | local (pętla agenta) | recommended after §3 Phase 5 | regresje w czasie edycji; konfiguracja to Moduł 3 Lekcja 3, nie ta lekcja                                                                                                                                                           |
+| visual diff / multimodal review                 | CI on PR             | optional                     | regresje renderowania; max 1–3 ekrany krytyczne, jeśli kiedykolwiek — patrz §7                                                                                                                                                      |
+| pre-prod smoke                                  | między merge a prod  | optional                     | błędy środowiskowe (propagacja `astro:env` / rotacja sekretów — patrz `infrastructure.md` §Risk Register)                                                                                                                           |
 
 ## 6. Cookbook Patterns
 
@@ -147,8 +147,10 @@ odpowiednia faza rolloutu wyląduje; wcześniej brzmi „TBD — patrz §3 Faza 
 ### 6.3 Dodanie testu e2e
 
 > Warstwa e2e jest **poza** fazowym rolloutem (§3–§5, patrz §7). Poniższe testy
-> powstały ćwiczeniowo przez skill `/10x-e2e` i pokrywają podróż generowania
-> fiszek end-to-end. Traktuj je jako wzorzec, nie jako zmianę strategii z §1–§5.
+> powstały ćwiczeniowo (skill `/10x-e2e` + jeden konwertowany z nagrania
+> `playwright codegen`) i pokrywają podróż generowania fiszek oraz ręczne
+> zarządzanie fiszkami end-to-end. Traktuj je jako wzorzec, nie jako zmianę
+> strategii z §1–§5.
 
 - **Lokalizacja / runner**: `e2e/*.spec.ts`, jeden test na plik. `npm run test:e2e`
   (podgląd krok po kroku: `npm run test:e2e:ui`). Instrukcja i setup: `README.md`
@@ -161,7 +163,10 @@ odpowiednia faza rolloutu wyląduje; wcześniej brzmi „TBD — patrz §3 Faza 
   zamiast interceptora w przeglądarce.
 - **Auth bez UI**: `e2e/auth.setup.ts` (projekt `setup`) loguje się raz i zapisuje
   `storageState` do `e2e/.auth/user.json` (gitignore). Wymaga `E2E_USERNAME` /
-  `E2E_PASSWORD` w `.env`.
+  `E2E_PASSWORD` w `.env`. Wyjątek: `flashcard-manual-crud.spec.ts` nadpisuje
+  `storageState` na pusty (sam napędza logowanie/wylogowanie) i w `afterEach`
+  odtwarza `e2e/.auth/user.json` — wylogowanie w aplikacji to globalna rewokacja
+  sesji w Supabase, więc bez tego padłyby kolejne specy.
 - **Izolacja i sprzątanie**: unikalny znacznik `e2e-<ts>-<rnd>` w treści źródłowej
   (stub wstrzykuje go w pytania), cleanup przez API po znaczniku — przed testem
   (recovery po crashu) i po nim. `workers: 1`, `timeout: 120s`: napędzamy jeden
@@ -183,8 +188,15 @@ odpowiednia faza rolloutu wyląduje; wcześniej brzmi „TBD — patrz §3 Faza 
     → widoczne „Spróbuj ponownie", wyjście ze stanu „generating", zero zapisów.
   - `seed.spec.ts` — wzorzec (ryzyko #5-adjacent): ręcznie utworzona fiszka trwała
     po reloadzie.
-- **Zakres**: te specy zakładają lokalny stub (`OPENROUTER_BASE_URL`) — nie przejdą
-  przeciw wdrożonemu `PLAYWRIGHT_BASE_URL` bez równoważnego mocka po tamtej stronie.
+  - `flashcard-manual-crud.spec.ts` — slice **S-03** (§6.3): błędne dane logowania →
+    widoczny błąd → poprawne logowanie → utworzenie → edycja → usunięcie → wylogowanie;
+    każda operacja CRUD przechodzi przez realne `/api/flashcards/*` + bazę. Konwersja
+    z nagrania `playwright codegen`. Break-verified: usunięcie `answer` z `UPDATE` w
+    `updateFlashcard` → test czerwony na asercji trwałości edycji.
+- **Zakres**: specy generowania zakładają lokalny stub (`OPENROUTER_BASE_URL`) — nie
+  przejdą przeciw wdrożonemu `PLAYWRIGHT_BASE_URL` bez równoważnego mocka po tamtej
+  stronie. `flashcard-manual-crud.spec.ts` nie dotyka OpenRoutera (wszystko realne),
+  więc działa przeciw dowolnemu środowisku z kontem testowym.
 
 ### 6.4 Dodanie testu dla nowego endpointu API
 

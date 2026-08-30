@@ -46,7 +46,11 @@ Astro 6 SSR app (`output: "server"` in `astro.config.mjs`) with React 19 islands
 
 ## CI
 
-`.github/workflows/ci.yml` runs lint + build on push/PR — but its branch triggers are still `master` while the repo's default branch is `main`, so CI currently won't fire on pushes to `main`. Requires `SUPABASE_URL`/`SUPABASE_KEY` repo secrets for the build step.
+`.github/workflows/ci.yml` triggers on push/PR to `main` with three jobs:
+
+- `ci` — `lint` + `test` (Vitest) + `build`. Needs `SUPABASE_URL`/`SUPABASE_KEY` secrets.
+- `e2e` — `npm run test:e2e` (Playwright). Needs `SUPABASE_URL`/`SUPABASE_KEY` **and** `E2E_USERNAME`/`E2E_PASSWORD` (dedicated prod test account). Serialized via a `concurrency` group because the specs share one Supabase account and `flashcard-manual-crud` signs out globally. Uploads `playwright-report/` as an artifact.
+- `deploy` — `needs: [ci, e2e]`; runs only on push to `main`. Needs `CLOUDFLARE_API_TOKEN`.
 
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
